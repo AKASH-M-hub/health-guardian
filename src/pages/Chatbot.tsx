@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useCredits } from '@/hooks/useCredits';
 import { Navbar } from '@/components/layout/Navbar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bot, Send, User, ArrowLeft, Sparkles, Heart, Brain, MapPin, Pill } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Bot, Send, User, ArrowLeft, Sparkles, Heart, Brain, MapPin, Pill, Coins, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
@@ -18,21 +21,24 @@ interface Message {
   timestamp: Date;
 }
 
+const CREDITS_PER_MESSAGE = 2;
+
 const QUICK_PROMPTS = [
-  { icon: Heart, label: 'Explain my risk score', prompt: 'Can you explain what my health risk score means?' },
-  { icon: Brain, label: 'Stress management tips', prompt: 'What are some effective stress management techniques?' },
-  { icon: MapPin, label: 'Find nearby hospitals', prompt: 'How can I find hospitals near me?' },
-  { icon: Pill, label: 'Medicine awareness', prompt: 'What should I know about common medication categories?' }
+  { icon: Heart, label: 'Explain my risk score', prompt: 'Can you explain what my health risk score means and how I can improve it?' },
+  { icon: Brain, label: 'Stress management', prompt: 'What are the most effective evidence-based stress management techniques I should try?' },
+  { icon: MapPin, label: 'Healthcare guidance', prompt: 'What should I look for when choosing a healthcare provider or hospital?' },
+  { icon: Pill, label: 'Medicine awareness', prompt: 'Can you explain the different categories of medications and what I should know about them?' }
 ];
 
 export default function Chatbot() {
   const { user } = useAuth();
+  const { credits, spendCredits, refreshCredits } = useCredits();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: "Hello! I'm your Health Intelligence Assistant. I can help you understand your health data, explain risk scores, provide wellness tips, and guide you to nearby healthcare facilities. How can I assist you today?",
+      content: "👋 **Hello! I'm your Health Intelligence Assistant.**\n\nI'm here to help you understand your health data, explain risk scores, provide wellness guidance, and support your health journey.\n\n**I can help you with:**\n- 📊 Understanding your health metrics\n- 💡 Personalized wellness tips\n- 🏥 Healthcare guidance\n- 💊 Medicine awareness (general information)\n- 🧘 Stress management techniques\n\n*Each message costs 2 credits. How can I assist you today?*",
       timestamp: new Date()
     }
   ]);
@@ -75,42 +81,22 @@ export default function Chatbot() {
     }
   };
 
-  const generateResponse = (userMessage: string): string => {
-    const lowerMsg = userMessage.toLowerCase();
-    
-    if (lowerMsg.includes('risk') || lowerMsg.includes('score')) {
-      return "Your health risk score is calculated based on multiple factors including sleep quality, stress levels, physical activity, and diet. A lower score indicates better health. The analysis considers trends over time rather than single data points, giving you a more accurate picture of your overall health trajectory. Would you like me to explain any specific factor in detail?";
-    }
-    
-    if (lowerMsg.includes('stress')) {
-      return "Stress management is crucial for preventing silent diseases. Here are some evidence-based techniques:\n\n• **Deep Breathing**: Practice 4-7-8 breathing technique\n• **Regular Exercise**: 30 minutes of moderate activity daily\n• **Sleep Hygiene**: Maintain consistent sleep schedule\n• **Mindfulness**: Try meditation apps for guided sessions\n• **Social Connection**: Maintain supportive relationships\n\nWould you like specific guidance on any of these techniques?";
-    }
-    
-    if (lowerMsg.includes('sleep')) {
-      return "Quality sleep is one of the most important factors for disease prevention. Adults typically need 7-9 hours per night. Poor sleep has been linked to increased risk of cardiovascular disease, diabetes, and mental health issues. Tips for better sleep:\n\n• Keep a consistent sleep schedule\n• Avoid screens 1 hour before bed\n• Keep your room cool and dark\n• Limit caffeine after 2 PM\n\nYour sleep data helps us track patterns and identify potential issues early.";
-    }
-    
-    if (lowerMsg.includes('hospital') || lowerMsg.includes('doctor') || lowerMsg.includes('clinic')) {
-      return "To find healthcare facilities near you, please visit the Hospital Finder feature in the app. You can:\n\n• Allow location access for automatic nearby search\n• Filter by specialty (cardiology, general practice, etc.)\n• View facility details and contact information\n• Get directions to the facility\n\nWould you like me to guide you to the Hospital Finder?";
-    }
-    
-    if (lowerMsg.includes('medicine') || lowerMsg.includes('medication') || lowerMsg.includes('drug')) {
-      return "I can provide general medicine awareness information, but please note:\n\n⚠️ **Important Disclaimer**: I cannot prescribe medications or provide specific dosage advice. Always consult a healthcare professional.\n\nGeneral medication categories include:\n• **Analgesics**: For pain relief\n• **Antihypertensives**: For blood pressure management\n• **Statins**: For cholesterol management\n• **Antidiabetics**: For blood sugar control\n\nWould you like general information about any category?";
-    }
-    
-    if (lowerMsg.includes('diet') || lowerMsg.includes('food') || lowerMsg.includes('nutrition')) {
-      return "A balanced diet is fundamental for disease prevention. Key recommendations:\n\n• **Fruits & Vegetables**: Aim for 5+ servings daily\n• **Whole Grains**: Choose over refined grains\n• **Lean Proteins**: Fish, poultry, legumes\n• **Healthy Fats**: Olive oil, nuts, avocados\n• **Limit**: Processed foods, added sugars, excessive sodium\n\nYour diet quality score helps track your nutritional habits over time.";
-    }
-    
-    if (lowerMsg.includes('exercise') || lowerMsg.includes('activity') || lowerMsg.includes('workout')) {
-      return "Regular physical activity is essential for preventing many silent diseases. WHO recommendations:\n\n• **Adults**: 150-300 minutes of moderate activity per week\n• **Or**: 75-150 minutes of vigorous activity\n• **Plus**: Muscle strengthening 2+ days per week\n\nEven small amounts help! Start with 10-minute walks and gradually increase. Your activity tracking helps identify patterns and areas for improvement.";
-    }
-    
-    return "I'm here to help you understand your health data and provide wellness guidance. I can explain your risk scores, offer lifestyle tips, guide you to healthcare resources, or answer questions about general health topics. What would you like to know more about?";
-  };
-
   const handleSend = async () => {
     if (!input.trim()) return;
+    if (!user) {
+      toast({ title: 'Please log in', variant: 'destructive' });
+      return;
+    }
+
+    // Check credits
+    if (credits < CREDITS_PER_MESSAGE) {
+      toast({
+        title: 'Insufficient Credits',
+        description: `You need ${CREDITS_PER_MESSAGE} credits. Log in tomorrow for 10 free credits!`,
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -120,44 +106,148 @@ export default function Chatbot() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const userInput = input.trim();
     setInput('');
     setIsTyping(true);
 
-    // Save user message
-    if (user) {
-      await supabase.from('chat_messages').insert({
-        user_id: user.id,
-        role: 'user',
-        content: userMessage.content
-      });
+    // Spend credits
+    const creditSpent = await spendCredits(CREDITS_PER_MESSAGE);
+    if (!creditSpent) {
+      setIsTyping(false);
+      return;
     }
 
-    // Simulate AI response delay
-    setTimeout(async () => {
-      const responseContent = generateResponse(userMessage.content);
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: responseContent,
-        timestamp: new Date()
-      };
+    // Save user message
+    await supabase.from('chat_messages').insert({
+      user_id: user.id,
+      role: 'user',
+      content: userMessage.content
+    });
 
-      setMessages(prev => [...prev, assistantMessage]);
+    try {
+      // Call AI endpoint
+      const conversationHistory = messages
+        .filter(m => m.id !== '1')
+        .map(m => ({ role: m.role, content: m.content }));
+      
+      conversationHistory.push({ role: 'user', content: userInput });
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: conversationHistory }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to get response');
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+      let assistantMessageId = (Date.now() + 1).toString();
+
+      // Add placeholder assistant message
+      setMessages(prev => [...prev, {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date()
+      }]);
+
+      if (reader) {
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          
+          let newlineIndex;
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            let line = buffer.slice(0, newlineIndex);
+            buffer = buffer.slice(newlineIndex + 1);
+
+            if (line.endsWith('\r')) line = line.slice(0, -1);
+            if (line.startsWith(':') || line.trim() === '') continue;
+            if (!line.startsWith('data: ')) continue;
+
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === '[DONE]') break;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.choices?.[0]?.delta?.content;
+              if (content) {
+                assistantContent += content;
+                setMessages(prev => prev.map(m => 
+                  m.id === assistantMessageId 
+                    ? { ...m, content: assistantContent }
+                    : m
+                ));
+              }
+            } catch {
+              // Incomplete JSON, continue
+            }
+          }
+        }
+      }
+
       setIsTyping(false);
 
       // Save assistant message
-      if (user) {
+      if (assistantContent) {
         await supabase.from('chat_messages').insert({
           user_id: user.id,
           role: 'assistant',
-          content: responseContent
+          content: assistantContent
         });
       }
-    }, 1000 + Math.random() * 1000);
+
+      refreshCredits();
+    } catch (error: any) {
+      console.error('Chat error:', error);
+      setIsTyping(false);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I apologize, but I'm having trouble responding right now. Please try again in a moment. If the issue persists, check your internet connection or contact support.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev.filter(m => m.content !== ''), errorMessage]);
+      
+      toast({
+        title: 'Connection Error',
+        description: error.message || 'Failed to get AI response',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleQuickPrompt = (prompt: string) => {
     setInput(prompt);
+  };
+
+  const formatMessage = (content: string) => {
+    // Simple markdown-like formatting
+    return content
+      .split('\n')
+      .map((line, i) => {
+        // Bold text
+        line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Bullet points
+        if (line.startsWith('- ') || line.startsWith('• ')) {
+          return `<li key="${i}" class="ml-4">${line.slice(2)}</li>`;
+        }
+        return line ? `<p key="${i}" class="mb-1">${line}</p>` : '<br/>';
+      })
+      .join('');
   };
 
   return (
@@ -174,19 +264,39 @@ export default function Chatbot() {
             Back to Dashboard
           </Button>
 
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="w-8 h-8 text-primary" />
-              Health Intelligence Assistant
-            </h1>
-            <p className="text-muted-foreground">Your AI-powered health companion</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                <Sparkles className="w-8 h-8 text-primary" />
+                Health Intelligence Assistant
+              </h1>
+              <p className="text-muted-foreground">Your AI-powered health companion</p>
+            </div>
+            <Badge variant="outline" className="self-start sm:self-auto flex items-center gap-2 px-3 py-2">
+              <Coins className="w-4 h-4 text-primary" />
+              <span className="font-semibold">{credits}</span>
+              <span className="text-muted-foreground">credits</span>
+            </Badge>
           </div>
 
+          {credits < CREDITS_PER_MESSAGE && (
+            <Card className="mb-4 border-warning/50 bg-warning/5">
+              <CardContent className="py-3 flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-warning" />
+                <div>
+                  <p className="font-medium text-sm">Low on credits!</p>
+                  <p className="text-xs text-muted-foreground">Log in tomorrow to receive 10 free credits.</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="h-[600px] flex flex-col">
-            <CardHeader className="border-b">
+            <CardHeader className="border-b py-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Bot className="w-4 h-4 text-primary" />
                 Chat with AI Assistant
+                <span className="text-xs text-muted-foreground ml-auto">({CREDITS_PER_MESSAGE} credits per message)</span>
               </CardTitle>
             </CardHeader>
             
@@ -201,7 +311,7 @@ export default function Chatbot() {
                       exit={{ opacity: 0 }}
                       className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                     >
-                      <Avatar className="w-8 h-8">
+                      <Avatar className="w-8 h-8 flex-shrink-0">
                         <AvatarFallback className={message.role === 'assistant' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}>
                           {message.role === 'assistant' ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
                         </AvatarFallback>
@@ -213,8 +323,11 @@ export default function Chatbot() {
                             : 'bg-muted'
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        <span className="text-xs opacity-60 mt-1 block">
+                        <div 
+                          className="text-sm prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
+                        />
+                        <span className="text-xs opacity-60 mt-2 block">
                           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -274,8 +387,12 @@ export default function Chatbot() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask me about your health..."
                   className="flex-1"
+                  disabled={credits < CREDITS_PER_MESSAGE}
                 />
-                <Button type="submit" disabled={!input.trim() || isTyping}>
+                <Button 
+                  type="submit" 
+                  disabled={!input.trim() || isTyping || credits < CREDITS_PER_MESSAGE}
+                >
                   <Send className="w-4 h-4" />
                 </Button>
               </form>
@@ -284,7 +401,7 @@ export default function Chatbot() {
 
           {/* Disclaimer */}
           <p className="text-xs text-muted-foreground text-center mt-4">
-            This AI assistant provides general health information only. It is not a substitute for professional medical advice.
+            ⚕️ This AI assistant provides general health information only. It is not a substitute for professional medical advice, diagnosis, or treatment.
           </p>
         </motion.div>
       </main>
