@@ -13,6 +13,7 @@ import HospitalFinder from "./pages/HospitalFinder";
 import MedicineAwareness from "./pages/MedicineAwareness";
 import Profile from "./pages/Profile";
 import HealthReport from "./pages/HealthReport";
+import Features from "./pages/Features";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/features" element={<Features />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/health-input" element={<HealthInput />} />
           <Route path="/risk-analysis" element={<RiskAnalysis />} />
@@ -41,5 +43,4 @@ const App = () => (
   </QueryClientProvider>
 );
 
-export default App;
 export default App;
