@@ -1,14 +1,13 @@
-import { forwardRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-export const CTASection = forwardRef<HTMLElement>(function CTASection(_, ref) {
+export function CTASection() {
   const navigate = useNavigate();
 
   return (
-    <section ref={ref} className="py-24 relative overflow-hidden">
+    <section className="py-24 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 gradient-ocean" />
       
@@ -63,4 +62,4 @@ export const CTASection = forwardRef<HTMLElement>(function CTASection(_, ref) {
       </div>
     </section>
   );
-});
+}
