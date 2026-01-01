@@ -13,41 +13,78 @@ serve(async (req) => {
 
   try {
     const { lat, lng, radius = 5000, type = "hospital" } = await req.json();
-    const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
-
-    if (!apiKey) {
-      throw new Error("Google Maps API key not configured");
-    }
 
     if (!lat || !lng) {
       throw new Error("Latitude and longitude are required");
     }
 
-    // Use Google Places API to find nearby hospitals
-    const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
-    
-    const response = await fetch(placesUrl);
-    const data = await response.json();
+    console.log(`Searching for ${type} near ${lat}, ${lng} within ${radius}m`);
 
-    if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
-      console.error("Google Places API error:", data);
-      throw new Error(`Google Places API error: ${data.status}`);
+    // Map frontend types to Overpass amenity types
+    const typeMapping: Record<string, string[]> = {
+      hospital: ["hospital"],
+      clinic: ["clinic", "doctors"],
+      pharmacy: ["pharmacy"],
+      dentist: ["dentist"],
+      veterinary: ["veterinary"],
+      nursing_home: ["nursing_home"],
+      laboratory: ["laboratory", "medical_laboratory"],
+      physiotherapist: ["physiotherapist"],
+      optician: ["optician"],
+      medical_supply: ["medical_supply"],
+    };
+
+    const amenityTypes = typeMapping[type] || ["hospital", "clinic", "doctors"];
+    const amenityQuery = amenityTypes.map(t => `node["amenity"="${t}"](around:${radius},${lat},${lng});`).join("");
+
+    // Use Overpass API (OpenStreetMap) - FREE, no API key required
+    const overpassQuery = `
+      [out:json][timeout:25];
+      (
+        ${amenityQuery}
+        way["amenity"="hospital"](around:${radius},${lat},${lng});
+        relation["amenity"="hospital"](around:${radius},${lat},${lng});
+      );
+      out center body;
+    `;
+
+    const overpassUrl = "https://overpass-api.de/api/interpreter";
+    
+    const response = await fetch(overpassUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `data=${encodeURIComponent(overpassQuery)}`,
+    });
+
+    if (!response.ok) {
+      console.error("Overpass API error:", response.status);
+      throw new Error(`Overpass API error: ${response.status}`);
     }
 
+    const data = await response.json();
+    console.log(`Found ${data.elements?.length || 0} results`);
+
     // Transform the results
-    const hospitals = (data.results || []).map((place: any, index: number) => ({
-      id: place.place_id,
-      name: place.name,
-      address: place.vicinity,
-      lat: place.geometry?.location?.lat,
-      lng: place.geometry?.location?.lng,
-      rating: place.rating || 0,
-      totalRatings: place.user_ratings_total || 0,
-      isOpen: place.opening_hours?.open_now ?? null,
-      types: place.types || [],
-      photoRef: place.photos?.[0]?.photo_reference || null,
-      distance: calculateDistance(lat, lng, place.geometry?.location?.lat, place.geometry?.location?.lng)
-    }));
+    const hospitals = (data.elements || []).map((place: any, index: number) => {
+      const placeLat = place.lat || place.center?.lat;
+      const placeLng = place.lon || place.center?.lon;
+      
+      return {
+        id: `osm-${place.id}`,
+        name: place.tags?.name || place.tags?.["name:en"] || `${type.charAt(0).toUpperCase() + type.slice(1)} ${index + 1}`,
+        address: formatAddress(place.tags),
+        lat: placeLat,
+        lng: placeLng,
+        rating: 0,
+        totalRatings: 0,
+        isOpen: null,
+        types: [place.tags?.amenity || type, place.tags?.healthcare].filter(Boolean),
+        phone: place.tags?.phone || place.tags?.["contact:phone"] || null,
+        website: place.tags?.website || place.tags?.["contact:website"] || null,
+        emergency: place.tags?.emergency === "yes",
+        distance: calculateDistance(lat, lng, placeLat, placeLng)
+      };
+    }).filter((h: any) => h.lat && h.lng);
 
     // Sort by distance
     hospitals.sort((a: any, b: any) => a.distance - b.distance);
@@ -64,7 +101,21 @@ serve(async (req) => {
   }
 });
 
+function formatAddress(tags: any): string {
+  if (!tags) return "Address not available";
+  
+  const parts = [
+    tags["addr:housenumber"],
+    tags["addr:street"],
+    tags["addr:city"],
+    tags["addr:postcode"],
+  ].filter(Boolean);
+  
+  return parts.length > 0 ? parts.join(", ") : (tags.address || "Address not available");
+}
+
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  if (!lat1 || !lng1 || !lat2 || !lng2) return 999;
   const R = 6371; // Earth's radius in km
   const dLat = toRad(lat2 - lat1);
   const dLng = toRad(lng2 - lng1);
