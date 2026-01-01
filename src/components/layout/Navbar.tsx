@@ -54,6 +54,10 @@ export function Navbar() {
                   <LayoutDashboard className="w-4 h-4 mr-2" />
                   Dashboard
                 </Button>
+                <Button variant="ghost" onClick={() => navigate('/account')}>
+                  <User className="w-4 h-4 mr-2" />
+                  Account
+                </Button>
                 <Button variant="outline" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -106,6 +110,9 @@ export function Navbar() {
                   <>
                     <Button variant="ghost" onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }}>
                       Dashboard
+                    </Button>
+                    <Button variant="ghost" onClick={() => { navigate('/account'); setMobileMenuOpen(false); }}>
+                      Account
                     </Button>
                     <Button variant="outline" onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}>
                       Sign Out
