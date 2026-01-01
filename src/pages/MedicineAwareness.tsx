@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Pill, Search, ArrowLeft, AlertTriangle, Info, Heart, Brain, Droplets, Shield } from 'lucide-react';
+import { Pill, Search, ArrowLeft, AlertTriangle, Info, Heart, Brain, Droplets, Shield, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface MedicineCategory {
@@ -245,6 +245,3 @@ export default function MedicineAwareness() {
     </div>
   );
 }
-
-// Fix missing import
-import { MapPin } from 'lucide-react';

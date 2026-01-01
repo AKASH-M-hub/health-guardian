@@ -1,9 +1,10 @@
+import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Shield, Mail, Phone } from 'lucide-react';
 
-export function Footer() {
+export const Footer = forwardRef<HTMLElement>(function Footer(_, ref) {
   return (
-    <footer className="bg-foreground text-background py-16">
+    <footer ref={ref} className="bg-foreground text-background py-16">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -69,4 +70,4 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+});
