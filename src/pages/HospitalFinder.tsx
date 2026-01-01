@@ -115,10 +115,11 @@ export default function HospitalFinder() {
            hospital.address?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  const openDirections = (hospital: Hospital) => {
+  const getDirectionsUrl = (hospital: Hospital) => {
     if (hospital.lat && hospital.lng) {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}`, '_blank');
+      return `https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}`;
     }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospital.name)}`;
   };
 
   return (
@@ -264,12 +265,14 @@ export default function HospitalFinder() {
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <Button size="sm" onClick={() => openDirections(hospital)}>
-                              <Navigation className="w-4 h-4 mr-1" />
-                              Get Directions
+                            <Button size="sm" asChild>
+                              <a href={getDirectionsUrl(hospital)} target="_blank" rel="noopener noreferrer">
+                                <Navigation className="w-4 h-4 mr-1" />
+                                Get Directions
+                              </a>
                             </Button>
                             <Button size="sm" variant="outline" asChild>
-                              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospital.name)}`} target="_blank" rel="noopener noreferrer">
+                              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospital.name + ' ' + hospital.address)}`} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="w-4 h-4 mr-1" />
                                 View on Maps
                               </a>
