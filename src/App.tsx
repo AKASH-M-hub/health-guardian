@@ -15,6 +15,7 @@ import MedicineAwareness from "./pages/MedicineAwareness";
 import Profile from "./pages/Profile";
 import HealthReport from "./pages/HealthReport";
 import Features from "./pages/Features";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/medicine-awareness" element={<MedicineAwareness />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/health-report" element={<HealthReport />} />
+            <Route path="/account" element={<Account />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
