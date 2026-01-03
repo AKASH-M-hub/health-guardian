@@ -31,7 +31,7 @@ export default function Dashboard() {
 
   const quickActions = [
     { icon: Activity, label: 'Log Health Data', href: '/health-input', color: 'bg-ocean/10 text-ocean' },
-    { icon: Brain, label: 'View Risk Analysis', href: '/risk-analysis', color: 'bg-lavender/10 text-lavender-dark' },
+    { icon: Brain, label: 'AI Health Hub', href: '/ai-health-hub', color: 'bg-lavender/10 text-lavender-dark' },
     { icon: MessageCircle, label: 'AI Assistant', href: '/chatbot', color: 'bg-coral/10 text-coral' },
     { icon: MapPin, label: 'Find Hospitals', href: '/hospital-finder', color: 'bg-mint/10 text-mint-dark' },
     { icon: Pill, label: 'Medicine Info', href: '/medicine-awareness', color: 'bg-primary/10 text-primary' },
