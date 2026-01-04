@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCredits } from '@/hooks/useCredits';
@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Send, User, ArrowLeft, Sparkles, Heart, Brain, MapPin, Pill, Coins, AlertCircle } from 'lucide-react';
+import { Stethoscope, Send, User, ArrowLeft, Sparkles, Heart, Brain, MapPin, Pill, Coins, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -38,7 +38,7 @@ export default function Chatbot() {
     {
       id: '1',
       role: 'assistant',
-      content: "👋 **Hello! I'm your Health Intelligence Assistant.**\n\nI'm here to help you understand your health data, explain risk scores, provide wellness guidance, and support your health journey.\n\n**I can help you with:**\n- 📊 Understanding your health metrics\n- 💡 Personalized wellness tips\n- 🏥 Healthcare guidance\n- 💊 Medicine awareness (general information)\n- 🧘 Stress management techniques\n\n*Each message costs 2 credits. How can I assist you today?*",
+      content: "👋 **Hello! I'm Dr. AI, your Health Intelligence Assistant.**\n\nI'm here to help you understand your health data, explain risk scores, provide wellness guidance, and support your health journey.\n\n**I can help you with:**\n- 📊 Understanding your health metrics\n- 💡 Personalized wellness tips\n- 🏥 Healthcare guidance\n- 💊 Medicine awareness (general information)\n- 🧘 Stress management techniques\n\n*Each message costs 2 credits. How can I assist you today?*",
       timestamp: new Date()
     }
   ]);
@@ -88,7 +88,6 @@ export default function Chatbot() {
       return;
     }
 
-    // Check credits
     if (credits < CREDITS_PER_MESSAGE) {
       toast({
         title: 'Insufficient Credits',
@@ -110,14 +109,12 @@ export default function Chatbot() {
     setInput('');
     setIsTyping(true);
 
-    // Spend credits
     const creditSpent = await spendCredits(CREDITS_PER_MESSAGE);
     if (!creditSpent) {
       setIsTyping(false);
       return;
     }
 
-    // Save user message
     await supabase.from('chat_messages').insert({
       user_id: user.id,
       role: 'user',
@@ -125,7 +122,6 @@ export default function Chatbot() {
     });
 
     try {
-      // Call AI endpoint
       const conversationHistory = messages
         .filter(m => m.id !== '1')
         .map(m => ({ role: m.role, content: m.content }));
@@ -146,13 +142,11 @@ export default function Chatbot() {
         throw new Error(errorData.error || 'Failed to get response');
       }
 
-      // Handle streaming response
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantContent = '';
       let assistantMessageId = (Date.now() + 1).toString();
 
-      // Add placeholder assistant message
       setMessages(prev => [...prev, {
         id: assistantMessageId,
         role: 'assistant',
@@ -200,7 +194,6 @@ export default function Chatbot() {
 
       setIsTyping(false);
 
-      // Save assistant message
       if (assistantContent) {
         await supabase.from('chat_messages').insert({
           user_id: user.id,
@@ -217,7 +210,7 @@ export default function Chatbot() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I apologize, but I'm having trouble responding right now. Please try again in a moment. If the issue persists, check your internet connection or contact support.",
+        content: "I apologize, but I'm having trouble responding right now. Please try again in a moment.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev.filter(m => m.content !== ''), errorMessage]);
@@ -235,13 +228,10 @@ export default function Chatbot() {
   };
 
   const formatMessage = (content: string) => {
-    // Simple markdown-like formatting
     return content
       .split('\n')
       .map((line, i) => {
-        // Bold text
         line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        // Bullet points
         if (line.startsWith('- ') || line.startsWith('• ')) {
           return `<li key="${i}" class="ml-4">${line.slice(2)}</li>`;
         }
@@ -268,9 +258,9 @@ export default function Chatbot() {
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
                 <Sparkles className="w-8 h-8 text-primary" />
-                Health Intelligence Assistant
+                Dr. AI Health Consultant
               </h1>
-              <p className="text-muted-foreground">Your AI-powered health companion</p>
+              <p className="text-muted-foreground">Your virtual health assistant</p>
             </div>
             <Badge variant="outline" className="self-start sm:self-auto flex items-center gap-2 px-3 py-2">
               <Coins className="w-4 h-4 text-primary" />
@@ -291,11 +281,11 @@ export default function Chatbot() {
             </Card>
           )}
 
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader className="border-b py-3">
+          <Card className="h-[600px] flex flex-col overflow-hidden">
+            <CardHeader className="border-b py-3 bg-gradient-to-r from-primary/5 to-coral/5">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Bot className="w-4 h-4 text-primary" />
-                Chat with AI Assistant
+                <Stethoscope className="w-4 h-4 text-primary" />
+                Consultation Room
                 <span className="text-xs text-muted-foreground ml-auto">({CREDITS_PER_MESSAGE} credits per message)</span>
               </CardTitle>
             </CardHeader>
@@ -311,23 +301,39 @@ export default function Chatbot() {
                       exit={{ opacity: 0 }}
                       className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                     >
-                      <Avatar className="w-8 h-8 flex-shrink-0">
-                        <AvatarFallback className={message.role === 'assistant' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}>
-                          {message.role === 'assistant' ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
-                        </AvatarFallback>
+                      <Avatar className="w-10 h-10 flex-shrink-0 ring-2 ring-offset-2 ring-offset-background">
+                        {message.role === 'assistant' ? (
+                          <>
+                            <AvatarImage src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=faces" alt="Dr. AI" />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              <Stethoscope className="w-5 h-5" />
+                            </AvatarFallback>
+                          </>
+                        ) : (
+                          <>
+                            <AvatarFallback className="bg-secondary">
+                              <User className="w-5 h-5" />
+                            </AvatarFallback>
+                          </>
+                        )}
                       </Avatar>
-                      <div 
-                        className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                          message.role === 'user' 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted'
-                        }`}
-                      >
+                      <div className="max-w-[80%]">
+                        <p className={`text-xs mb-1 ${message.role === 'user' ? 'text-right' : ''} text-muted-foreground`}>
+                          {message.role === 'assistant' ? 'Dr. AI' : 'You'}
+                        </p>
                         <div 
-                          className="text-sm prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
-                        />
-                        <span className="text-xs opacity-60 mt-2 block">
+                          className={`rounded-2xl px-4 py-3 ${
+                            message.role === 'user' 
+                              ? 'bg-primary text-primary-foreground rounded-tr-none' 
+                              : 'bg-muted rounded-tl-none'
+                          }`}
+                        >
+                          <div 
+                            className="text-sm prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
+                          />
+                        </div>
+                        <span className={`text-xs opacity-60 mt-1 block ${message.role === 'user' ? 'text-right' : ''}`}>
                           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -341,16 +347,20 @@ export default function Chatbot() {
                     animate={{ opacity: 1 }}
                     className="flex gap-3"
                   >
-                    <Avatar className="w-8 h-8">
+                    <Avatar className="w-10 h-10 ring-2 ring-offset-2 ring-offset-background">
+                      <AvatarImage src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=faces" alt="Dr. AI" />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Bot className="w-4 h-4" />
+                        <Stethoscope className="w-5 h-5" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="bg-muted rounded-2xl px-4 py-3">
-                      <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div>
+                      <p className="text-xs mb-1 text-muted-foreground">Dr. AI</p>
+                      <div className="bg-muted rounded-2xl rounded-tl-none px-4 py-3">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -359,7 +369,7 @@ export default function Chatbot() {
             </ScrollArea>
 
             {/* Quick Prompts */}
-            <div className="px-4 py-2 border-t">
+            <div className="px-4 py-2 border-t bg-muted/30">
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {QUICK_PROMPTS.map((item) => (
                   <Button
@@ -377,7 +387,7 @@ export default function Chatbot() {
             </div>
 
             {/* Input */}
-            <CardContent className="border-t p-4">
+            <CardContent className="border-t p-4 bg-background">
               <form 
                 onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                 className="flex gap-2"
@@ -385,13 +395,14 @@ export default function Chatbot() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me about your health..."
+                  placeholder="Describe your health concern..."
                   className="flex-1"
                   disabled={credits < CREDITS_PER_MESSAGE}
                 />
                 <Button 
                   type="submit" 
                   disabled={!input.trim() || isTyping || credits < CREDITS_PER_MESSAGE}
+                  className="bg-gradient-to-r from-primary to-coral"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
