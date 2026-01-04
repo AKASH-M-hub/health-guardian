@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCredits } from '@/hooks/useCredits';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Navbar } from '@/components/layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   User, Mail, Calendar, MapPin, Shield, Coins, 
   Activity, Heart, Brain, Stethoscope, MessageSquare,
   FileText, Hospital, Pill, ArrowLeft, Crown, Star,
-  Check, Lock, Zap, TrendingUp, Camera, Upload, Code2
+  Check, Lock, Zap, TrendingUp, Camera, Upload, Code2, Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,13 +37,13 @@ const FEATURES = [
   { name: 'Disease Awareness', icon: Pill, description: 'Learn about 100+ diseases', available: true, path: '/medicine-awareness' },
   { name: 'Health Reports', icon: FileText, description: 'Generate detailed health reports', available: true, path: '/health-report' },
   { name: 'AI Health Hub', icon: Brain, description: '20+ AI intelligence features', available: true, path: '/ai-hub' },
-  { name: 'Medication Reminders', icon: Crown, description: 'Never miss a dose', available: false, path: '#', premium: true },
-  { name: 'Advanced Analytics', icon: Zap, description: 'Deep health insights', available: false, path: '#', premium: true },
+  { name: 'Premium Features', icon: Crown, description: '20 advanced AI features', available: 'premium', path: '/premium', premium: true },
 ];
 
 export default function Account() {
   const { user } = useAuth();
   const { credits } = useCredits();
+  const { isPremium, subscription } = useSubscription();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [stats, setStats] = useState<UserStats>({
@@ -190,10 +190,17 @@ export default function Account() {
                 </div>
                 <CardTitle className="text-xl">{profile?.full_name || 'User'}</CardTitle>
                 <CardDescription>{user.email}</CardDescription>
-                <Badge className="mt-2 bg-success/20 text-success">
-                  <Shield className="w-3 h-3 mr-1" />
-                  Free Plan
-                </Badge>
+                {isPremium ? (
+                  <Badge className="mt-2 bg-gradient-to-r from-primary to-coral text-white">
+                    <Crown className="w-3 h-3 mr-1" />
+                    Premium Member
+                  </Badge>
+                ) : (
+                  <Badge className="mt-2 bg-success/20 text-success">
+                    <Shield className="w-3 h-3 mr-1" />
+                    Free Plan
+                  </Badge>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <Separator />
@@ -236,12 +243,22 @@ export default function Account() {
                   <Button className="w-full" onClick={() => navigate('/profile')}>
                     Edit Profile
                   </Button>
-                  <PremiumUpgrade trigger={
-                    <Button className="w-full bg-gradient-to-r from-primary to-coral text-white">
-                      <Crown className="w-4 h-4 mr-2" />
-                      Upgrade to Premium - ₹1
+                  {isPremium ? (
+                    <Button 
+                      className="w-full bg-gradient-to-r from-primary to-coral text-white"
+                      onClick={() => navigate('/premium')}
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Premium Dashboard
                     </Button>
-                  } />
+                  ) : (
+                    <PremiumUpgrade trigger={
+                      <Button className="w-full bg-gradient-to-r from-primary to-coral text-white">
+                        <Crown className="w-4 h-4 mr-2" />
+                        Upgrade to Premium - ₹1
+                      </Button>
+                    } />
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -284,78 +301,106 @@ export default function Account() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-3 gap-3">
-                    {FEATURES.map((feature, index) => (
-                      <motion.div
-                        key={feature.name}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
-                        <Card 
-                          className={`p-3 cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                            feature.available 
-                              ? 'hover:border-primary/50 hover:-translate-y-1' 
-                              : 'opacity-60'
-                          }`}
-                          onClick={() => feature.available && navigate(feature.path)}
+                    {FEATURES.map((feature, index) => {
+                      const isAvailable = feature.available === true || (feature.available === 'premium' && isPremium);
+                      return (
+                        <motion.div
+                          key={feature.name}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
                         >
-                          <div className="flex items-start gap-2">
-                            <div className={`p-1.5 rounded-lg ${
-                              feature.available 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'bg-muted text-muted-foreground'
-                            }`}>
-                              <feature.icon className="w-4 h-4" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-1">
-                                <h3 className="font-medium text-xs truncate">{feature.name}</h3>
-                                {feature.available ? (
-                                  <Check className="w-3 h-3 text-success shrink-0" />
-                                ) : (
-                                  <Lock className="w-3 h-3 text-muted-foreground shrink-0" />
-                                )}
+                          <Card 
+                            className={`p-3 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                              isAvailable 
+                                ? 'hover:border-primary/50 hover:-translate-y-1' 
+                                : 'opacity-60'
+                            }`}
+                            onClick={() => isAvailable && navigate(feature.path)}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div className={`p-1.5 rounded-lg ${
+                                isAvailable 
+                                  ? feature.premium ? 'bg-gradient-to-r from-primary/20 to-coral/20 text-primary' : 'bg-primary/10 text-primary'
+                                  : 'bg-muted text-muted-foreground'
+                              }`}>
+                                <feature.icon className="w-4 h-4" />
                               </div>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {feature.description}
-                              </p>
-                              {(feature as any).premium && (
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-1">
+                                  <h3 className="font-medium text-xs truncate">{feature.name}</h3>
+                                  {isAvailable ? (
+                                    <Check className="w-3 h-3 text-success shrink-0" />
+                                  ) : (
+                                    <Lock className="w-3 h-3 text-muted-foreground shrink-0" />
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {feature.description}
+                                </p>
+                                {feature.premium && !isPremium && (
                                 <Badge variant="outline" className="mt-1 text-[10px] px-1.5 py-0">
                                   <Crown className="w-2 h-2 mr-0.5" />
                                   Premium
                                 </Badge>
                               )}
+                              </div>
                             </div>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    ))}
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Upgrade Banner */}
-              <PremiumUpgrade trigger={
-                <Card className="bg-gradient-to-r from-primary to-coral text-white overflow-hidden cursor-pointer hover:shadow-xl transition-shadow">
+              {/* Premium Banner */}
+              {isPremium ? (
+                <Card 
+                  className="bg-gradient-to-r from-primary to-coral text-white overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
+                  onClick={() => navigate('/premium')}
+                >
                   <CardContent className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-white/20 rounded-full">
                         <Crown className="w-8 h-8" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg">Upgrade to Premium</h3>
+                        <h3 className="font-bold text-lg">Premium Active ✨</h3>
                         <p className="text-white/80 text-sm">
-                          Medication reminders, advanced analytics & more
+                          You have access to all 20 advanced AI features
                         </p>
                       </div>
                     </div>
                     <Button variant="secondary" className="shrink-0">
-                      <Star className="w-4 h-4 mr-1" />
-                      Only ₹1
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      Explore
                     </Button>
                   </CardContent>
                 </Card>
-              } />
+              ) : (
+                <PremiumUpgrade trigger={
+                  <Card className="bg-gradient-to-r from-primary to-coral text-white overflow-hidden cursor-pointer hover:shadow-xl transition-shadow">
+                    <CardContent className="p-6 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white/20 rounded-full">
+                          <Crown className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg">Upgrade to Premium</h3>
+                          <p className="text-white/80 text-sm">
+                            20 advanced AI features for just ₹1
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="secondary" className="shrink-0">
+                        <Star className="w-4 h-4 mr-1" />
+                        Only ₹1
+                      </Button>
+                    </CardContent>
+                  </Card>
+                } />
+              )}
             </div>
           </div>
         </motion.div>

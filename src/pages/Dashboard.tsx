@@ -3,18 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCredits } from '@/hooks/useCredits';
 import { useHealthData } from '@/hooks/useHealthData';
+import { useSubscription } from '@/hooks/useSubscription';
 import { Navbar } from '@/components/layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Heart, Activity, Brain, Moon, Utensils, TrendingUp, TrendingDown, Minus, MessageCircle, MapPin, FileText, User, Coins, Droplets, Pill } from 'lucide-react';
+import { Heart, Activity, Brain, Moon, Utensils, TrendingUp, TrendingDown, Minus, MessageCircle, MapPin, FileText, User, Coins, Droplets, Pill, Crown, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { HealthSimulator } from '@/components/simulation/HealthSimulator';
+import { BodyStatusDiagram } from '@/components/simulation/BodyStatusDiagram';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const { credits, loading: creditsLoading } = useCredits();
   const { stats, loading: healthLoading } = useHealthData();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -245,11 +249,69 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
-        {/* CTA */}
+        {/* Health Simulation Section */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ delay: 0.45 }}
+          className="mb-8"
+        >
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-primary" />
+            Health Simulations
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <HealthSimulator />
+            <BodyStatusDiagram 
+              healthData={{
+                sleepHours: stats?.avgSleepHours ?? 7,
+                stressLevel: stats?.avgStressLevel ?? 5,
+                exerciseMinutes: stats?.avgActivityMinutes ?? 30,
+                dietQuality: stats?.avgDietQuality ?? 7,
+                heartRate: stats?.latestEntry?.heart_rate ?? 72
+              }}
+            />
+          </div>
+        </motion.div>
+
+        {/* Premium CTA for non-premium users */}
+        {!isPremium && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.5 }}
+            className="mb-8"
+          >
+            <Card 
+              className="bg-gradient-to-r from-primary to-coral text-white cursor-pointer hover:shadow-xl transition-shadow"
+              onClick={() => navigate('/account')}
+            >
+              <CardContent className="py-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/20 rounded-full">
+                    <Crown className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Unlock 20 Premium AI Features</h3>
+                    <p className="text-white/80 text-sm">
+                      Digital Twin, 10-Year Forecast, Burnout Detection & more
+                    </p>
+                  </div>
+                </div>
+                <Button variant="secondary" className="shrink-0">
+                  <Sparkles className="w-4 h-4 mr-1" />
+                  Only ₹1
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* CTA */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.55 }}
           className="text-center"
         >
           <Card className="bg-gradient-to-r from-primary/5 via-mint/5 to-coral/5 border-primary/20">

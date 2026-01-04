@@ -17,6 +17,7 @@ import HealthReport from "./pages/HealthReport";
 import Features from "./pages/Features";
 import Account from "./pages/Account";
 import AIHealthHub from "./pages/AIHealthHub";
+import PremiumDashboard from "./pages/PremiumDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,7 +42,9 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/health-report" element={<HealthReport />} />
             <Route path="/account" element={<Account />} />
+            <Route path="/ai-hub" element={<AIHealthHub />} />
             <Route path="/ai-health-hub" element={<AIHealthHub />} />
+            <Route path="/premium" element={<PremiumDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
