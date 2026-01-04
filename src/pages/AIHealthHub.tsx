@@ -29,6 +29,7 @@ import { PreDoctorTestEngine } from '@/components/ai-hub/PreDoctorTestEngine';
 import { HealthIdentityCard } from '@/components/ai-hub/HealthIdentityCard';
 import { RecoveryReadinessIndex } from '@/components/ai-hub/RecoveryReadinessIndex';
 import { RegretPreventionAI } from '@/components/ai-hub/RegretPreventionAI';
+import { LifestyleRoutineSuggester } from '@/components/ai-hub/LifestyleRoutineSuggester';
 
 export default function AIHealthHub() {
   const { user, loading: authLoading } = useAuth();
@@ -164,6 +165,7 @@ export default function AIHealthHub() {
               <DoctorRehearsalAI stats={stats} />
               <PreDoctorTestEngine stats={stats} entries={entries} />
             </div>
+            <LifestyleRoutineSuggester />
           </TabsContent>
         </Tabs>
       </main>
