@@ -117,17 +117,17 @@ export default function HospitalFinder() {
 
   const getDirectionsUrl = (hospital: Hospital) => {
     if (hospital.lat && hospital.lng && location) {
-      // Use OpenStreetMap for directions (works without restrictions)
-      return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${location.lat},${location.lng};${hospital.lat},${hospital.lng}`;
+      // Use Google Maps for directions (better navigation experience)
+      return `https://www.google.com/maps/dir/?api=1&origin=${location.lat},${location.lng}&destination=${hospital.lat},${hospital.lng}&travelmode=driving`;
     }
-    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(hospital.name + ' ' + hospital.address)}`;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospital.name + ' ' + hospital.address)}`;
   };
 
   const getMapUrl = (hospital: Hospital) => {
     if (hospital.lat && hospital.lng) {
-      return `https://www.openstreetmap.org/?mlat=${hospital.lat}&mlon=${hospital.lng}#map=17/${hospital.lat}/${hospital.lng}`;
+      return `https://www.google.com/maps/search/?api=1&query=${hospital.lat},${hospital.lng}`;
     }
-    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(hospital.name)}`;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospital.name)}`;
   };
 
   return (
@@ -296,7 +296,7 @@ export default function HospitalFinder() {
           )}
 
           <p className="text-xs text-muted-foreground text-center mt-8">
-            Results powered by Google Maps API. Real-time data based on your location.
+            Hospital data powered by OpenStreetMap. Click "Get Directions" for navigation via Google Maps.
           </p>
         </motion.div>
       </main>

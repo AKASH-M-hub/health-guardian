@@ -82,14 +82,15 @@ serve(async (req) => {
         phone: place.tags?.phone || place.tags?.["contact:phone"] || null,
         website: place.tags?.website || place.tags?.["contact:website"] || null,
         emergency: place.tags?.emergency === "yes",
-        distance: calculateDistance(lat, lng, placeLat, placeLng)
+      distance: calculateDistance(lat, lng, placeLat, placeLng)
       };
     }).filter((h: any) => h.lat && h.lng);
 
-    // Sort by distance
+    // Sort by distance and limit to 15 results for better display
     hospitals.sort((a: any, b: any) => a.distance - b.distance);
+    const limitedHospitals = hospitals.slice(0, 15);
 
-    return new Response(JSON.stringify({ hospitals }), {
+    return new Response(JSON.stringify({ hospitals: limitedHospitals }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
