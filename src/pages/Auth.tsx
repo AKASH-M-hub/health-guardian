@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Heart, ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { ForgotPassword } from '@/components/auth/ForgotPassword';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -95,6 +96,13 @@ export default function Auth() {
                 <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 {errors.password && <p className="text-destructive text-sm mt-1">{errors.password}</p>}
               </div>
+              
+              {!isSignUp && (
+                <div className="text-right">
+                  <ForgotPassword />
+                </div>
+              )}
+              
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {isSignUp ? 'Create Account' : 'Sign In'}

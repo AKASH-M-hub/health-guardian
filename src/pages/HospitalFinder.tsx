@@ -116,10 +116,18 @@ export default function HospitalFinder() {
   });
 
   const getDirectionsUrl = (hospital: Hospital) => {
-    if (hospital.lat && hospital.lng) {
-      return `https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}`;
+    if (hospital.lat && hospital.lng && location) {
+      // Use OpenStreetMap for directions (works without restrictions)
+      return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${location.lat},${location.lng};${hospital.lat},${hospital.lng}`;
     }
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospital.name)}`;
+    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(hospital.name + ' ' + hospital.address)}`;
+  };
+
+  const getMapUrl = (hospital: Hospital) => {
+    if (hospital.lat && hospital.lng) {
+      return `https://www.openstreetmap.org/?mlat=${hospital.lat}&mlon=${hospital.lng}#map=17/${hospital.lat}/${hospital.lng}`;
+    }
+    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(hospital.name)}`;
   };
 
   return (
@@ -272,7 +280,7 @@ export default function HospitalFinder() {
                               </a>
                             </Button>
                             <Button size="sm" variant="outline" asChild>
-                              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospital.name + ' ' + hospital.address)}`} target="_blank" rel="noopener noreferrer">
+                              <a href={getMapUrl(hospital)} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="w-4 h-4 mr-1" />
                                 View on Maps
                               </a>
