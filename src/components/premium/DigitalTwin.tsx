@@ -330,25 +330,31 @@ export function DigitalTwin() {
                       Organ Impact Predictions
                     </h4>
                     <div className="grid grid-cols-3 gap-2">
-                      {projection.organImpacts.map((impact, i) => (
-                        <motion.div
-                          key={impact.organ}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: i * 0.1 }}
-                          className={`p-3 rounded-lg text-center ${
-                            impact.status === 'good' ? 'bg-success/10' :
-                            impact.status === 'warning' ? 'bg-warning/10' : 'bg-destructive/10'
-                          }`}
-                        >
-                          <p className="text-xs font-medium">{impact.organ}</p>
-                          <p className={`text-lg font-bold ${
-                            impact.change > 0 ? 'text-success' : 'text-destructive'
-                          }`}>
-                            {impact.change > 0 ? '+' : ''}{impact.change}%
-                          </p>
-                        </motion.div>
-                      ))}
+                      {Array.isArray(projection.organImpacts) && projection.organImpacts.length > 0 ? (
+                        projection.organImpacts.map((impact, i) => (
+                          <motion.div
+                            key={impact.organ || i}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.1 }}
+                            className={`p-3 rounded-lg text-center ${
+                              impact.status === 'good' ? 'bg-success/10' :
+                              impact.status === 'warning' ? 'bg-warning/10' : 'bg-destructive/10'
+                            }`}
+                          >
+                            <p className="text-xs font-medium">{impact.organ}</p>
+                            <p className={`text-lg font-bold ${
+                              impact.change > 0 ? 'text-success' : 'text-destructive'
+                            }`}>
+                              {impact.change > 0 ? '+' : ''}{impact.change}%
+                            </p>
+                          </motion.div>
+                        ))
+                      ) : (
+                        <div className="col-span-3 text-center text-sm text-muted-foreground py-4">
+                          No organ impact data available
+                        </div>
+                      )}
                     </div>
                   </div>
 

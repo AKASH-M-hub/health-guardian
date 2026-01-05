@@ -36,6 +36,11 @@ import { RecoveryProbability } from '@/components/premium/RecoveryProbability';
 import { HealthPriorityOptimizer } from '@/components/premium/HealthPriorityOptimizer';
 import { EmotionalHeatmap } from '@/components/premium/EmotionalHeatmap';
 import { Body3DVisualization } from '@/components/premium/Body3DVisualization';
+import { HealthTrajectoryScan } from '@/components/scans/HealthTrajectoryScan';
+import { RiskHeatmapScan } from '@/components/scans/RiskHeatmapScan';
+import { MentalBurnoutScan } from '@/components/scans/MentalBurnoutScan';
+import { FutureHealthProjectionScan } from '@/components/scans/FutureHealthProjectionScan';
+import { HealthRegressionScan } from '@/components/scans/HealthRegressionScan';
 
 // 20 Premium Features Data
 const PREMIUM_FEATURES = [
@@ -476,6 +481,11 @@ export default function PremiumDashboard() {
       case 'priority-optimizer': return <HealthPriorityOptimizer />;
       case 'emotional-heatmap': return <EmotionalHeatmap />;
       case 'health-vault': return <Body3DVisualization />;
+      case 'health-trajectory': return <HealthTrajectoryScan />;
+      case 'risk-heatmap': return <RiskHeatmapScan />;
+      case 'mental-burnout': return <MentalBurnoutScan />;
+      case 'future-projection': return <FutureHealthProjectionScan />;
+      case 'health-regression': return <HealthRegressionScan />;
       default: return (
         <div className="text-center py-8 text-muted-foreground">
           <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
