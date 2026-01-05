@@ -271,23 +271,9 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Prescription & History Section */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Stethoscope className="w-5 h-5 text-primary" />
-              Health Tools
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            <PrescriptionSuggester />
-            <UserActivityHistory />
-          </div>
-        </motion.div>
-
         {/* Premium CTA for non-premium users */}
         {!isPremium && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mb-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mb-8">
             <Card 
               className="bg-gradient-to-r from-primary to-coral text-white cursor-pointer hover:shadow-xl transition-all hover:scale-[1.02]"
               onClick={() => navigate('/premium')}
