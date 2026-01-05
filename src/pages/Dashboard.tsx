@@ -41,6 +41,7 @@ export default function Dashboard() {
 
   const quickActions = [
     { icon: Activity, label: 'Log Health Data', href: '/health-input', color: 'bg-ocean/10 text-ocean hover:bg-ocean/20' },
+    { icon: Brain, label: 'AI Health Hub', href: '/ai-health-hub', color: 'bg-lavender/10 text-lavender-dark hover:bg-lavender/20' },
     { icon: Bot, label: 'AKASHII Bot', href: '/chatbot', color: 'bg-coral/10 text-coral hover:bg-coral/20' },
     { icon: MapPin, label: 'Find Hospitals', href: '/hospital-finder', color: 'bg-mint/10 text-mint-dark hover:bg-mint/20' },
     { icon: Sparkles, label: 'AI Health Features', href: '/ai-health-features', color: 'bg-lavender/10 text-lavender-dark hover:bg-lavender/20' },
@@ -92,7 +93,7 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-3 mb-8">
           {quickActions.map((action, i) => (
             <motion.div key={action.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Card 
