@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Phone, Clock, Navigation, ArrowLeft, Search, Building2, Stethoscope, Heart, Brain, Bone, Star, ExternalLink, Loader2, Sparkles } from 'lucide-react';
+import { MapPin, Phone, Clock, Navigation, ArrowLeft, Search, Building2, Stethoscope, Heart, Brain, Bone, Star, ExternalLink, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -140,22 +140,12 @@ export default function HospitalFinder() {
             Back to Dashboard
           </Button>
 
-          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <MapPin className="w-8 h-8 text-coral" />
-                Hospital Finder
-              </h1>
-              <p className="text-muted-foreground">Find real healthcare facilities near your location</p>
-            </div>
-            <Button 
-              onClick={() => navigate('/ai-health-hub')} 
-              className="bg-gradient-to-r from-lavender to-lavender-dark hover:from-lavender-dark hover:to-lavender"
-            >
-              <Brain className="w-4 h-4 mr-2" />
-              AI Health Hub
-              <Sparkles className="w-4 h-4 ml-2" />
-            </Button>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <MapPin className="w-8 h-8 text-coral" />
+              Hospital Finder
+            </h1>
+            <p className="text-muted-foreground">Find real healthcare facilities near your location</p>
           </div>
 
           {/* Location & Search */}
