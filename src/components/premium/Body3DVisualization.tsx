@@ -1,103 +1,17 @@
-import { useState, useRef, Suspense } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, Html, Environment } from '@react-three/drei';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Scan, Heart, Brain, Activity, Zap, Eye, RotateCcw } from 'lucide-react';
+import { Scan, Heart, Brain, Activity, Zap, Eye, Wind, Droplets } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useHealthData } from '@/hooks/useHealthData';
-import * as THREE from 'three';
 
 interface OrganData {
   name: string;
-  position: [number, number, number];
+  icon: typeof Heart;
   color: string;
   health: number;
-  size: number;
-}
-
-function Organ({ name, position, color, health, size, onClick, isSelected }: OrganData & { onClick: () => void; isSelected: boolean }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
-      if (isSelected) {
-        meshRef.current.scale.setScalar(size * 1.2 + Math.sin(state.clock.elapsedTime * 2) * 0.05);
-      } else {
-        meshRef.current.scale.setScalar(size);
-      }
-    }
-  });
-
-  const getHealthColor = () => {
-    if (health >= 80) return '#22c55e';
-    if (health >= 60) return '#f59e0b';
-    return '#ef4444';
-  };
-
-  return (
-    <group position={position}>
-      <Sphere ref={meshRef} args={[0.3, 32, 32]} onClick={onClick}>
-        <meshStandardMaterial
-          color={isSelected ? getHealthColor() : color}
-          emissive={isSelected ? getHealthColor() : '#000000'}
-          emissiveIntensity={isSelected ? 0.3 : 0}
-          roughness={0.4}
-          metalness={0.3}
-        />
-      </Sphere>
-      {isSelected && (
-        <Html position={[0, 0.5, 0]} center>
-          <div className="bg-background/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border text-center whitespace-nowrap">
-            <p className="font-bold text-sm">{name}</p>
-            <p className="text-xs" style={{ color: getHealthColor() }}>{health}% Health</p>
-          </div>
-        </Html>
-      )}
-    </group>
-  );
-}
-
-function Body3D({ organs, selectedOrgan, onSelectOrgan }: { organs: OrganData[]; selectedOrgan: string | null; onSelectOrgan: (name: string) => void }) {
-  const bodyRef = useRef<THREE.Group>(null);
-
-  useFrame((state) => {
-    if (bodyRef.current) {
-      bodyRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.2) * 0.1;
-    }
-  });
-
-  return (
-    <group ref={bodyRef}>
-      {/* Body outline */}
-      <mesh position={[0, 0, 0]}>
-        <capsuleGeometry args={[0.5, 2, 16, 32]} />
-        <meshStandardMaterial 
-          color="#6366f1" 
-          transparent 
-          opacity={0.15} 
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      
-      {/* Head */}
-      <Sphere args={[0.35, 32, 32]} position={[0, 1.4, 0]}>
-        <meshStandardMaterial color="#a78bfa" transparent opacity={0.2} />
-      </Sphere>
-
-      {/* Organs */}
-      {organs.map((organ) => (
-        <Organ
-          key={organ.name}
-          {...organ}
-          onClick={() => onSelectOrgan(organ.name)}
-          isSelected={selectedOrgan === organ.name}
-        />
-      ))}
-    </group>
-  );
+  position: { top: string; left: string };
 }
 
 export function Body3DVisualization() {
@@ -137,12 +51,12 @@ export function Body3DVisualization() {
   const organHealth = calculateOrganHealth();
 
   const organs: OrganData[] = [
-    { name: 'Brain', position: [0, 1.4, 0.1], color: '#f472b6', health: organHealth.brain, size: 0.25 },
-    { name: 'Heart', position: [0.15, 0.5, 0.2], color: '#ef4444', health: organHealth.heart, size: 0.22 },
-    { name: 'Lungs', position: [-0.25, 0.5, 0.1], color: '#60a5fa', health: organHealth.lungs, size: 0.28 },
-    { name: 'Liver', position: [0.2, 0, 0.15], color: '#a78bfa', health: organHealth.liver, size: 0.25 },
-    { name: 'Kidneys', position: [0, -0.3, 0.1], color: '#fbbf24', health: organHealth.kidneys, size: 0.18 },
-    { name: 'Stomach', position: [-0.1, 0.1, 0.2], color: '#34d399', health: organHealth.stomach, size: 0.2 }
+    { name: 'Brain', icon: Brain, color: '#f472b6', health: organHealth.brain, position: { top: '8%', left: '50%' } },
+    { name: 'Heart', icon: Heart, color: '#ef4444', health: organHealth.heart, position: { top: '30%', left: '45%' } },
+    { name: 'Lungs', icon: Wind, color: '#60a5fa', health: organHealth.lungs, position: { top: '28%', left: '60%' } },
+    { name: 'Liver', icon: Activity, color: '#a78bfa', health: organHealth.liver, position: { top: '42%', left: '40%' } },
+    { name: 'Kidneys', icon: Droplets, color: '#fbbf24', health: organHealth.kidneys, position: { top: '50%', left: '55%' } },
+    { name: 'Stomach', icon: Zap, color: '#34d399', health: organHealth.stomach, position: { top: '45%', left: '50%' } }
   ];
 
   const selectedOrganData = organs.find(o => o.name === selectedOrgan);
@@ -151,6 +65,23 @@ export function Body3DVisualization() {
     if (health >= 80) return 'text-success';
     if (health >= 60) return 'text-warning';
     return 'text-destructive';
+  };
+
+  const getHealthBg = (health: number) => {
+    if (health >= 80) return 'bg-success';
+    if (health >= 60) return 'bg-warning';
+    return 'bg-destructive';
+  };
+
+  const getScanModeStyles = () => {
+    switch (scanMode) {
+      case 'xray':
+        return 'from-slate-900 via-blue-950 to-slate-900 [filter:contrast(1.2)]';
+      case 'thermal':
+        return 'from-orange-950 via-red-950 to-yellow-950';
+      default:
+        return 'from-primary/20 via-violet-500/20 to-pink-500/20';
+    }
   };
 
   return (
@@ -167,7 +98,7 @@ export function Body3DVisualization() {
           3D Body Visualization
         </CardTitle>
         <CardDescription>
-          Interactive 3D body model showing organ health status
+          Interactive body model showing organ health status
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-4">
@@ -199,34 +130,93 @@ export function Body3DVisualization() {
           </Button>
         </div>
 
-        {/* 3D Canvas */}
-        <div className="h-[350px] bg-gradient-to-b from-slate-900 to-slate-800 rounded-xl overflow-hidden">
-          <Canvas camera={{ position: [0, 0, 4], fov: 50 }}>
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} intensity={1} />
-            <pointLight position={[-10, -10, -10]} intensity={0.5} />
-            <Suspense fallback={null}>
-              <Body3D 
-                organs={organs} 
-                selectedOrgan={selectedOrgan}
-                onSelectOrgan={setSelectedOrgan}
-              />
-              <Environment preset="city" />
-            </Suspense>
-            <OrbitControls 
-              enableZoom={true} 
-              enablePan={false}
-              minDistance={2}
-              maxDistance={6}
-              autoRotate={!selectedOrgan}
-              autoRotateSpeed={1}
+        {/* Body Visualization */}
+        <div className={`relative h-[350px] bg-gradient-to-b ${getScanModeStyles()} rounded-xl overflow-hidden`}>
+          {/* Human Body SVG Outline */}
+          <svg 
+            viewBox="0 0 200 400" 
+            className="absolute inset-0 w-full h-full opacity-30"
+          >
+            {/* Body outline */}
+            <ellipse cx="100" cy="50" rx="35" ry="40" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary" />
+            <path 
+              d="M65 90 Q50 120 45 180 L40 250 Q35 280 50 300 L55 350 Q60 380 75 390 L90 390 L95 350 L100 320 L105 350 L110 390 L125 390 Q140 380 145 350 L150 300 Q165 280 160 250 L155 180 Q150 120 135 90" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              className="text-primary"
             />
-          </Canvas>
+            {/* Arms */}
+            <path d="M45 100 Q20 130 15 200 Q10 230 20 260" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary" />
+            <path d="M155 100 Q180 130 185 200 Q190 230 180 260" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary" />
+          </svg>
+
+          {/* Organs */}
+          {organs.map((organ) => {
+            const Icon = organ.icon;
+            const isSelected = selectedOrgan === organ.name;
+            return (
+              <motion.button
+                key={organ.name}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+                style={{ top: organ.position.top, left: organ.position.left }}
+                onClick={() => setSelectedOrgan(organ.name)}
+                animate={{
+                  scale: isSelected ? [1, 1.2, 1] : 1,
+                }}
+                transition={{
+                  duration: 0.5,
+                  repeat: isSelected ? Infinity : 0,
+                }}
+                whileHover={{ scale: 1.15 }}
+              >
+                <div 
+                  className={`p-3 rounded-full transition-all ${
+                    isSelected ? 'ring-4 ring-white/50 shadow-lg' : ''
+                  }`}
+                  style={{ 
+                    backgroundColor: scanMode === 'thermal' 
+                      ? organ.health >= 80 ? '#22c55e' : organ.health >= 60 ? '#f59e0b' : '#ef4444'
+                      : scanMode === 'xray' 
+                      ? '#3b82f6' 
+                      : organ.color,
+                    opacity: scanMode === 'xray' ? 0.8 : 1
+                  }}
+                >
+                  <Icon className="w-5 h-5 text-white" />
+                </div>
+                {isSelected && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-background/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border whitespace-nowrap z-10"
+                  >
+                    <p className="font-bold text-sm">{organ.name}</p>
+                    <p className={`text-xs ${getHealthColor(organ.health)}`}>{organ.health}% Health</p>
+                  </motion.div>
+                )}
+              </motion.button>
+            );
+          })}
+
+          {/* Scan animation overlay */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/30 to-transparent"
+            animate={{
+              y: ['-100%', '100%'],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            style={{ height: '50%' }}
+          />
         </div>
 
         {/* Instructions */}
         <p className="text-xs text-center text-muted-foreground">
-          Click on organs to view health status • Drag to rotate • Scroll to zoom
+          Click on organs to view health status
         </p>
 
         {/* Selected Organ Details */}
@@ -238,7 +228,7 @@ export function Body3DVisualization() {
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-coral" />
+                <selectedOrganData.icon className="w-5 h-5 text-coral" />
                 <span className="font-semibold">{selectedOrganData.name}</span>
               </div>
               <Badge className={getHealthColor(selectedOrganData.health) + ' bg-transparent'}>
@@ -249,10 +239,7 @@ export function Body3DVisualization() {
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${selectedOrganData.health}%` }}
-                className={`h-full ${
-                  selectedOrganData.health >= 80 ? 'bg-success' :
-                  selectedOrganData.health >= 60 ? 'bg-warning' : 'bg-destructive'
-                }`}
+                className={`h-full ${getHealthBg(selectedOrganData.health)}`}
               />
             </div>
             <p className="text-xs text-muted-foreground mt-2">

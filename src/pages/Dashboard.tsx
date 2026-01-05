@@ -13,6 +13,11 @@ import { Heart, Activity, Brain, Moon, Utensils, TrendingUp, TrendingDown, Minus
 import { motion } from 'framer-motion';
 import { HealthSimulator } from '@/components/simulation/HealthSimulator';
 import { BodyStatusDiagram } from '@/components/simulation/BodyStatusDiagram';
+import { VirtualOrganStressScan } from '@/components/scans/VirtualOrganStressScan';
+import { WhatIfHealthSimulator } from '@/components/simulation/WhatIfHealthSimulator';
+import { FutureSelfSimulation } from '@/components/simulation/FutureSelfSimulation';
+import { PrescriptionSuggester } from '@/components/features/PrescriptionSuggester';
+import { UserActivityHistory } from '@/components/features/UserActivityHistory';
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
@@ -271,6 +276,37 @@ export default function Dashboard() {
                 heartRate: stats?.latestEntry?.heart_rate ?? 72
               }}
             />
+          </div>
+        </motion.div>
+
+        {/* Free User Features - Scans & Simulations */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.5 }}
+          className="mb-8"
+        >
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-coral" />
+            AI Health Features
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <VirtualOrganStressScan />
+            <WhatIfHealthSimulator />
+            <FutureSelfSimulation />
+          </div>
+        </motion.div>
+
+        {/* Prescription & History */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.55 }}
+          className="mb-8"
+        >
+          <div className="grid md:grid-cols-2 gap-6">
+            <PrescriptionSuggester />
+            <UserActivityHistory />
           </div>
         </motion.div>
 
