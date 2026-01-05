@@ -69,10 +69,12 @@ export function Navbar() {
             {user ? (
               <>
                 {isPremium && (
-                  <Button variant="ghost" onClick={() => navigate('/premium')} className="text-warning">
-                    <Crown className="w-4 h-4 mr-2" />
-                    Premium
-                  </Button>
+                  <>
+                    <Button variant="ghost" onClick={() => navigate('/premium')} className="text-warning hover:text-warning/80">
+                      <Crown className="w-4 h-4 mr-2" />
+                      Premium
+                    </Button>
+                  </>
                 )}
                 <Button variant="ghost" onClick={() => navigate('/dashboard')}>
                   <LayoutDashboard className="w-4 h-4 mr-2" />
