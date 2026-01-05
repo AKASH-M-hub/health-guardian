@@ -95,12 +95,15 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-8">
           {quickActions.map((action, i) => (
             <motion.div key={action.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Card className="cursor-pointer hover:shadow-lg hover:scale-105 transition-all h-full" onClick={() => navigate(action.href)}>
+              <Card 
+                className="cursor-pointer hover:shadow-lg hover:shadow-primary/20 hover:scale-105 hover:-translate-y-1 transition-all duration-300 h-full group" 
+                onClick={() => navigate(action.href)}
+              >
                 <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                  <div className={`w-10 h-10 rounded-xl ${action.color} flex items-center justify-center transition-colors`}>
+                  <div className={`w-10 h-10 rounded-xl ${action.color} flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}>
                     <action.icon className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-medium">{action.label}</span>
+                  <span className="text-xs font-medium group-hover:text-primary transition-colors">{action.label}</span>
                 </CardContent>
               </Card>
             </motion.div>
@@ -110,10 +113,10 @@ export default function Dashboard() {
         {/* Health Overview Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="h-full hover:shadow-lg transition-shadow">
+            <Card className="h-full hover:shadow-lg hover:shadow-coral/20 hover:-translate-y-1 transition-all duration-300 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-coral" />
+                  <Heart className="w-4 h-4 text-coral group-hover:scale-110 transition-transform" />
                   Risk Level
                 </CardTitle>
               </CardHeader>
@@ -131,10 +134,10 @@ export default function Dashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-            <Card className="h-full hover:shadow-lg transition-shadow">
+            <Card className="h-full hover:shadow-lg hover:shadow-lavender-dark/20 hover:-translate-y-1 transition-all duration-300 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Moon className="w-4 h-4 text-lavender-dark" />
+                  <Moon className="w-4 h-4 text-lavender-dark group-hover:scale-110 transition-transform" />
                   Avg Sleep
                 </CardTitle>
               </CardHeader>
@@ -149,10 +152,10 @@ export default function Dashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="h-full hover:shadow-lg transition-shadow">
+            <Card className="h-full hover:shadow-lg hover:shadow-mint-dark/20 hover:-translate-y-1 transition-all duration-300 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Utensils className="w-4 h-4 text-mint-dark" />
+                  <Utensils className="w-4 h-4 text-mint-dark group-hover:scale-110 transition-transform" />
                   Diet Quality
                 </CardTitle>
               </CardHeader>
@@ -167,10 +170,10 @@ export default function Dashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-            <Card className="h-full hover:shadow-lg transition-shadow">
+            <Card className="h-full hover:shadow-lg hover:shadow-ocean/20 hover:-translate-y-1 transition-all duration-300 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-ocean" />
+                  <Activity className="w-4 h-4 text-ocean group-hover:scale-110 transition-transform" />
                   Activity
                 </CardTitle>
               </CardHeader>
@@ -188,10 +191,10 @@ export default function Dashboard() {
         {/* Additional Stats Row */}
         <div className="grid md:grid-cols-3 gap-4 mb-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg hover:shadow-coral/20 hover:-translate-y-1 transition-all duration-300 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-coral" />
+                  <Brain className="w-4 h-4 text-coral group-hover:scale-110 transition-transform" />
                   Stress Level
                 </CardTitle>
               </CardHeader>
@@ -210,10 +213,10 @@ export default function Dashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg hover:shadow-ocean/20 hover:-translate-y-1 transition-all duration-300 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Droplets className="w-4 h-4 text-ocean" />
+                  <Droplets className="w-4 h-4 text-ocean group-hover:scale-110 transition-transform" />
                   Hydration
                 </CardTitle>
               </CardHeader>
@@ -230,10 +233,10 @@ export default function Dashboard() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary" />
+                  <FileText className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                   Health Entries
                 </CardTitle>
               </CardHeader>

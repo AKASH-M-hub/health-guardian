@@ -41,6 +41,9 @@ import { RiskHeatmapScan } from '@/components/scans/RiskHeatmapScan';
 import { MentalBurnoutScan } from '@/components/scans/MentalBurnoutScan';
 import { FutureHealthProjectionScan } from '@/components/scans/FutureHealthProjectionScan';
 import { HealthRegressionScan } from '@/components/scans/HealthRegressionScan';
+import { HealthWisdomEngine } from '@/components/wisdom/HealthWisdomEngine';
+import { FutureReadinessIndex } from '@/components/wisdom/FutureReadinessIndex';
+import { PersonalHealthPhilosophy } from '@/components/wisdom/PersonalHealthPhilosophy';
 
 // 20 Premium Features Data
 const PREMIUM_FEATURES = [
@@ -203,6 +206,14 @@ const PREMIUM_FEATURES = [
     icon: Lock,
     category: 'storage',
     color: 'from-slate-500 to-gray-600'
+  },
+  {
+    id: 'wisdom-layer',
+    name: 'AI Wisdom Layer',
+    description: 'Meta-AI intelligence that adapts communication based on your emotional and cognitive state',
+    icon: Lightbulb,
+    category: 'coaching',
+    color: 'from-lavender-dark to-purple-500'
   }
 ];
 
@@ -486,6 +497,13 @@ export default function PremiumDashboard() {
       case 'mental-burnout': return <MentalBurnoutScan />;
       case 'future-projection': return <FutureHealthProjectionScan />;
       case 'health-regression': return <HealthRegressionScan />;
+      case 'wisdom-layer': return (
+        <div className="grid md:grid-cols-3 gap-4">
+          <HealthWisdomEngine userStress={45} userEngagement={72} trustLevel={80} />
+          <PersonalHealthPhilosophy />
+          <FutureReadinessIndex />
+        </div>
+      );
       default: return (
         <div className="text-center py-8 text-muted-foreground">
           <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -547,20 +565,20 @@ export default function PremiumDashboard() {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card 
-                  className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                    selectedFeature === feature.id ? 'ring-2 ring-primary' : ''
+                  className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 hover:shadow-primary/20 group ${
+                    selectedFeature === feature.id ? 'ring-2 ring-primary shadow-lg shadow-primary/30' : ''
                   }`}
                   onClick={() => setSelectedFeature(feature.id === selectedFeature ? null : feature.id)}
                 >
                   <CardContent className="p-4">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-3`}>
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                       <feature.icon className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-sm mb-1">{feature.name}</h3>
+                    <h3 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors">{feature.name}</h3>
                     <p className="text-xs text-muted-foreground line-clamp-2">{feature.description}</p>
-                    <div className="mt-3 flex items-center text-xs text-primary">
+                    <div className="mt-3 flex items-center text-xs text-primary group-hover:gap-1 transition-all">
                       <span>Explore</span>
-                      <ChevronRight className="w-3 h-3 ml-1" />
+                      <ChevronRight className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </CardContent>
                 </Card>
