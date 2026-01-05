@@ -271,26 +271,8 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* AI Health Features Section */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-coral" />
-              AI Health Features
-            </h2>
-            <Badge variant="outline" className="bg-success/10 text-success border-success/30">
-              Free Access
-            </Badge>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <VirtualOrganStressScan />
-            <WhatIfHealthSimulator />
-            <FutureSelfSimulation />
-          </div>
-        </motion.div>
-
         {/* Prescription & History Section */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} className="mb-8">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
               <Stethoscope className="w-5 h-5 text-primary" />
