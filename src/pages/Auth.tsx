@@ -56,13 +56,23 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
+      // Handle case where the user already exists and guide them to sign in instead
+      const alreadyExists = isSignUp && error.message?.toLowerCase().includes('already registered');
+
       console.error('Auth error:', error);
       toast({ 
-        title: 'Authentication Failed', 
-        description: error.message || 'Invalid credentials. Please check your email and password.', 
+        title: alreadyExists ? 'Account already exists' : 'Authentication Failed',
+        description: alreadyExists
+          ? 'We found an existing account for this email. Switching you to Sign In.'
+          : error.message || 'Invalid credentials. Please check your email and password.',
         variant: 'destructive',
-        duration: 5000
+        duration: 6000
       });
+
+      if (alreadyExists) {
+        setIsSignUp(false);
+        setPassword('');
+      }
     } else {
       toast({ 
         title: isSignUp ? 'Account created!' : 'Welcome back!',
