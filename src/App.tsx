@@ -20,6 +20,7 @@ import Account from "./pages/Account";
 import AIHealthHub from "./pages/AIHealthHub";
 import PremiumDashboard from "./pages/PremiumDashboard";
 import DoctorChat from "./pages/DoctorChat";
+import Wisdom from "./pages/Wisdom";
 import NotFound from "./pages/NotFound";
 import TestAuth from "./pages/TestAuth";
 
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/ai-health-hub" element={<AIHealthHub />} />
               <Route path="/premium" element={<PremiumDashboard />} />
               <Route path="/doctor-chat" element={<DoctorChat />} />
+              <Route path="/wisdom" element={<Wisdom />} />
               <Route path="/test-auth" element={<TestAuth />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
