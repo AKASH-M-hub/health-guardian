@@ -7,12 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Stethoscope, Send, User, ArrowLeft, Sparkles, Heart, Brain, MapPin, Pill, Coins, AlertCircle } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Bot, Send, User, ArrowLeft, Heart, Brain, MapPin, Pill, Coins, AlertCircle, Mic, MicOff, Sparkles, Stethoscope } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { BackgroundAnimation } from '@/components/ui/BackgroundAnimation';
+import { DoctorCollaboration } from '@/components/collaboration/DoctorCollaboration';
 
 interface Message {
   id: string;
@@ -24,10 +27,10 @@ interface Message {
 const CREDITS_PER_MESSAGE = 2;
 
 const QUICK_PROMPTS = [
-  { icon: Heart, label: 'Explain my risk score', prompt: 'Can you explain what my health risk score means and how I can improve it?' },
-  { icon: Brain, label: 'Stress management', prompt: 'What are the most effective evidence-based stress management techniques I should try?' },
-  { icon: MapPin, label: 'Healthcare guidance', prompt: 'What should I look for when choosing a healthcare provider or hospital?' },
-  { icon: Pill, label: 'Medicine awareness', prompt: 'Can you explain the different categories of medications and what I should know about them?' }
+  { icon: Heart, label: 'Risk Score', prompt: 'Explain my health risk briefly' },
+  { icon: Brain, label: 'Stress Tips', prompt: 'Quick stress relief tips' },
+  { icon: MapPin, label: 'Healthcare', prompt: 'How to find good healthcare' },
+  { icon: Pill, label: 'Medicine', prompt: 'Basic medicine awareness' }
 ];
 
 export default function Chatbot() {
@@ -38,12 +41,14 @@ export default function Chatbot() {
     {
       id: '1',
       role: 'assistant',
-      content: "👋 **Hello! I'm Dr. AI, your Health Intelligence Assistant.**\n\nI'm here to help you understand your health data, explain risk scores, provide wellness guidance, and support your health journey.\n\n**I can help you with:**\n- 📊 Understanding your health metrics\n- 💡 Personalized wellness tips\n- 🏥 Healthcare guidance\n- 💊 Medicine awareness (general information)\n- 🧘 Stress management techniques\n\n*Each message costs 2 credits. How can I assist you today?*",
+      content: "Hello! I'm AKASHII, your AI Health Intelligence Agent. How can I help you today?",
       timestamp: new Date()
     }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [mode, setMode] = useState<'chat' | 'doctor'>('chat');
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,7 +68,7 @@ export default function Chatbot() {
         .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: true })
-        .limit(50);
+        .limit(30);
 
       if (data && data.length > 0) {
         setMessages(prev => [
@@ -91,7 +96,7 @@ export default function Chatbot() {
     if (credits < CREDITS_PER_MESSAGE) {
       toast({
         title: 'Insufficient Credits',
-        description: `You need ${CREDITS_PER_MESSAGE} credits. Log in tomorrow for 10 free credits!`,
+        description: `You need ${CREDITS_PER_MESSAGE} credits.`,
         variant: 'destructive',
       });
       return;
@@ -124,6 +129,7 @@ export default function Chatbot() {
     try {
       const conversationHistory = messages
         .filter(m => m.id !== '1')
+        .slice(-10)
         .map(m => ({ role: m.role, content: m.content }));
       
       conversationHistory.push({ role: 'user', content: userInput });
@@ -134,7 +140,10 @@ export default function Chatbot() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: conversationHistory }),
+        body: JSON.stringify({ 
+          messages: conversationHistory,
+          mode: 'concise'
+        }),
       });
 
       if (!response.ok) {
@@ -185,9 +194,7 @@ export default function Chatbot() {
                     : m
                 ));
               }
-            } catch {
-              // Incomplete JSON, continue
-            }
+            } catch {}
           }
         }
       }
@@ -210,7 +217,7 @@ export default function Chatbot() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I apologize, but I'm having trouble responding right now. Please try again in a moment.",
+        content: "I'm having trouble responding. Please try again.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev.filter(m => m.content !== ''), errorMessage]);
@@ -223,50 +230,85 @@ export default function Chatbot() {
     }
   };
 
-  const handleQuickPrompt = (prompt: string) => {
-    setInput(prompt);
-  };
+  const toggleVoiceInput = () => {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      toast({ title: 'Voice not supported', variant: 'destructive' });
+      return;
+    }
 
-  const formatMessage = (content: string) => {
-    return content
-      .split('\n')
-      .map((line, i) => {
-        line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        if (line.startsWith('- ') || line.startsWith('• ')) {
-          return `<li key="${i}" class="ml-4">${line.slice(2)}</li>`;
-        }
-        return line ? `<p key="${i}" class="mb-1">${line}</p>` : '<br/>';
-      })
-      .join('');
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
+    setIsListening(true);
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <BackgroundAnimation />
       <Navbar />
-      <main className="container mx-auto px-4 pt-24 pb-12">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl mx-auto"
-        >
-          <Button variant="ghost" onClick={() => navigate('/dashboard')} className="mb-6">
+      <main className="container mx-auto px-4 pt-24 pb-12 relative z-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto">
+          <Button variant="ghost" onClick={() => navigate('/dashboard')} className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <Sparkles className="w-8 h-8 text-primary" />
-                Dr. AI Health Consultant
-              </h1>
-              <p className="text-muted-foreground">Your virtual health assistant</p>
+            <div className="flex items-center gap-3">
+              <motion.div
+                animate={{ 
+                  boxShadow: ['0 0 20px hsl(var(--primary) / 0.3)', '0 0 40px hsl(var(--primary) / 0.6)', '0 0 20px hsl(var(--primary) / 0.3)']
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-coral flex items-center justify-center relative"
+              >
+                <Bot className="w-7 h-7 text-primary-foreground" />
+                <motion.div
+                  className="absolute -inset-1 rounded-full border-2 border-primary/50"
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </motion.div>
+              <div>
+                <h1 className="text-2xl font-bold">AKASHII</h1>
+                <p className="text-sm text-muted-foreground">AI Health Intelligence Agent</p>
+              </div>
             </div>
-            <Badge variant="outline" className="self-start sm:self-auto flex items-center gap-2 px-3 py-2">
-              <Coins className="w-4 h-4 text-primary" />
-              <span className="font-semibold">{credits}</span>
-              <span className="text-muted-foreground">credits</span>
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="flex items-center gap-1 px-3 py-2">
+                <Coins className="w-4 h-4 text-primary" />
+                <span className="font-semibold">{credits}</span>
+              </Badge>
+              <Tabs value={mode} onValueChange={(v) => setMode(v as 'chat' | 'doctor')}>
+                <TabsList>
+                  <TabsTrigger value="chat" className="flex items-center gap-1">
+                    <Bot className="w-4 h-4" />
+                    Chat
+                  </TabsTrigger>
+                  <TabsTrigger value="doctor" className="flex items-center gap-1">
+                    <Stethoscope className="w-4 h-4" />
+                    Doctor Mode
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
 
           {credits < CREDITS_PER_MESSAGE && (
@@ -275,144 +317,146 @@ export default function Chatbot() {
                 <AlertCircle className="w-5 h-5 text-warning" />
                 <div>
                   <p className="font-medium text-sm">Low on credits!</p>
-                  <p className="text-xs text-muted-foreground">Log in tomorrow to receive 10 free credits.</p>
+                  <p className="text-xs text-muted-foreground">Log in tomorrow for 10 free credits.</p>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          <Card className="h-[600px] flex flex-col overflow-hidden">
-            <CardHeader className="border-b py-3 bg-gradient-to-r from-primary/5 to-coral/5">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Stethoscope className="w-4 h-4 text-primary" />
-                Consultation Room
-                <span className="text-xs text-muted-foreground ml-auto">({CREDITS_PER_MESSAGE} credits per message)</span>
-              </CardTitle>
-            </CardHeader>
-            
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-              <div className="space-y-4">
-                <AnimatePresence>
-                  {messages.map((message) => (
-                    <motion.div
-                      key={message.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
-                    >
-                      <Avatar className="w-10 h-10 flex-shrink-0 ring-2 ring-offset-2 ring-offset-background">
-                        {message.role === 'assistant' ? (
-                          <>
-                            <AvatarImage src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=faces" alt="Dr. AI" />
-                            <AvatarFallback className="bg-primary text-primary-foreground">
-                              <Stethoscope className="w-5 h-5" />
-                            </AvatarFallback>
-                          </>
-                        ) : (
-                          <>
-                            <AvatarFallback className="bg-secondary">
-                              <User className="w-5 h-5" />
-                            </AvatarFallback>
-                          </>
-                        )}
-                      </Avatar>
-                      <div className="max-w-[80%]">
-                        <p className={`text-xs mb-1 ${message.role === 'user' ? 'text-right' : ''} text-muted-foreground`}>
-                          {message.role === 'assistant' ? 'Dr. AI' : 'You'}
-                        </p>
-                        <div 
-                          className={`rounded-2xl px-4 py-3 ${
-                            message.role === 'user' 
-                              ? 'bg-primary text-primary-foreground rounded-tr-none' 
-                              : 'bg-muted rounded-tl-none'
-                          }`}
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Main Chat Area */}
+            <div className={mode === 'doctor' ? 'lg:col-span-2' : 'lg:col-span-3'}>
+              <Card className="h-[600px] flex flex-col overflow-hidden border-2 border-primary/20 shadow-glow">
+                <CardHeader className="py-3 bg-gradient-to-r from-primary/10 via-coral/10 to-primary/10 border-b">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    {mode === 'chat' ? 'AI Consultation Room' : 'Doctor Collaboration'}
+                    <span className="text-xs text-muted-foreground ml-auto">({CREDITS_PER_MESSAGE} credits/message)</span>
+                  </CardTitle>
+                </CardHeader>
+                
+                <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                  <div className="space-y-4">
+                    <AnimatePresence>
+                      {messages.map((message) => (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                         >
-                          <div 
-                            className="text-sm prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
-                          />
-                        </div>
-                        <span className={`text-xs opacity-60 mt-1 block ${message.role === 'user' ? 'text-right' : ''}`}>
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                          <Avatar className="w-8 h-8 flex-shrink-0">
+                            {message.role === 'assistant' ? (
+                              <AvatarFallback className="bg-gradient-to-br from-primary to-coral text-primary-foreground">
+                                <Bot className="w-4 h-4" />
+                              </AvatarFallback>
+                            ) : (
+                              <AvatarFallback className="bg-secondary">
+                                <User className="w-4 h-4" />
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          <div className="max-w-[80%]">
+                            <p className={`text-xs mb-1 ${message.role === 'user' ? 'text-right' : ''} text-muted-foreground`}>
+                              {message.role === 'assistant' ? 'AKASHII' : 'You'}
+                            </p>
+                            <div className={`rounded-2xl px-4 py-2 text-sm ${
+                              message.role === 'user' 
+                                ? 'bg-primary text-primary-foreground rounded-tr-none' 
+                                : 'bg-muted rounded-tl-none'
+                            }`}>
+                              {message.content}
+                            </div>
+                            <span className={`text-[10px] opacity-60 mt-1 block ${message.role === 'user' ? 'text-right' : ''}`}>
+                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
 
-                {isTyping && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex gap-3"
-                  >
-                    <Avatar className="w-10 h-10 ring-2 ring-offset-2 ring-offset-background">
-                      <AvatarImage src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&h=100&fit=crop&crop=faces" alt="Dr. AI" />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Stethoscope className="w-5 h-5" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-xs mb-1 text-muted-foreground">Dr. AI</p>
-                      <div className="bg-muted rounded-2xl rounded-tl-none px-4 py-3">
-                        <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    {isTyping && (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-coral text-primary-foreground">
+                            <Bot className="w-4 h-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="bg-muted rounded-2xl rounded-tl-none px-4 py-2">
+                          <div className="flex gap-1">
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            </ScrollArea>
+                      </motion.div>
+                    )}
+                  </div>
+                </ScrollArea>
 
-            {/* Quick Prompts */}
-            <div className="px-4 py-2 border-t bg-muted/30">
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {QUICK_PROMPTS.map((item) => (
-                  <Button
-                    key={item.label}
-                    variant="outline"
-                    size="sm"
-                    className="whitespace-nowrap"
-                    onClick={() => handleQuickPrompt(item.prompt)}
-                  >
-                    <item.icon className="w-3 h-3 mr-1" />
-                    {item.label}
-                  </Button>
-                ))}
-              </div>
+                {/* Quick Prompts */}
+                <div className="px-4 py-2 border-t bg-muted/30">
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {QUICK_PROMPTS.map((item) => (
+                      <Button
+                        key={item.label}
+                        variant="outline"
+                        size="sm"
+                        className="whitespace-nowrap text-xs hover:bg-primary/10 hover:border-primary/50 transition-colors"
+                        onClick={() => setInput(item.prompt)}
+                      >
+                        <item.icon className="w-3 h-3 mr-1" />
+                        {item.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Input */}
+                <CardContent className="border-t p-3 bg-background">
+                  <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask AKASHII anything..."
+                      className="flex-1"
+                      disabled={credits < CREDITS_PER_MESSAGE}
+                    />
+                    <Button 
+                      type="button"
+                      variant={isListening ? "destructive" : "outline"}
+                      size="icon"
+                      onClick={toggleVoiceInput}
+                    >
+                      {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={!input.trim() || isTyping || credits < CREDITS_PER_MESSAGE}
+                      className="bg-gradient-to-r from-primary to-coral hover:opacity-90"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Input */}
-            <CardContent className="border-t p-4 bg-background">
-              <form 
-                onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-                className="flex gap-2"
+            {/* Doctor Collaboration Panel */}
+            {mode === 'doctor' && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="lg:col-span-1"
               >
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Describe your health concern..."
-                  className="flex-1"
-                  disabled={credits < CREDITS_PER_MESSAGE}
-                />
-                <Button 
-                  type="submit" 
-                  disabled={!input.trim() || isTyping || credits < CREDITS_PER_MESSAGE}
-                  className="bg-gradient-to-r from-primary to-coral"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                <DoctorCollaboration />
+              </motion.div>
+            )}
+          </div>
 
-          {/* Disclaimer */}
           <p className="text-xs text-muted-foreground text-center mt-4">
-            ⚕️ This AI assistant provides general health information only. It is not a substitute for professional medical advice, diagnosis, or treatment.
+            ⚕️ AKASHII provides general health information only. Not a substitute for professional medical advice.
           </p>
         </motion.div>
       </main>
