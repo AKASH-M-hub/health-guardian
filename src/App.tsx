@@ -19,6 +19,7 @@ import Account from "./pages/Account";
 import AIHealthHub from "./pages/AIHealthHub";
 import PremiumDashboard from "./pages/PremiumDashboard";
 import NotFound from "./pages/NotFound";
+import TestAuth from "./pages/TestAuth";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/ai-hub" element={<AIHealthHub />} />
             <Route path="/ai-health-hub" element={<AIHealthHub />} />
             <Route path="/premium" element={<PremiumDashboard />} />
+            <Route path="/test-auth" element={<TestAuth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
