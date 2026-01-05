@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Code2, Database, Cloud, Shield, Palette, Zap, Brain, Globe } from 'lucide-react';
+import { Code2, Database, Cloud, Shield, Palette, Zap, Brain, Globe, Bot, Layers, Eye, Sparkles, Gauge } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const TECH_STACK = [
@@ -24,10 +24,11 @@ const TECH_STACK = [
     icon: Database,
     color: 'text-mint-dark',
     technologies: [
-      { name: 'Supabase', description: 'Open source Firebase alternative' },
+      { name: 'Lovable Cloud', description: 'Managed backend infrastructure' },
       { name: 'PostgreSQL', description: 'Advanced relational database' },
       { name: 'Edge Functions', description: 'Serverless backend functions' },
       { name: 'Row Level Security', description: 'Database-level access control' },
+      { name: 'Real-time Subscriptions', description: 'Live data synchronization' },
     ]
   },
   {
@@ -35,42 +36,86 @@ const TECH_STACK = [
     icon: Brain,
     color: 'text-coral',
     technologies: [
+      { name: 'AKASHII Bot', description: 'Custom AI Health Intelligence Agent' },
       { name: 'Lovable AI Gateway', description: 'Multi-model AI integration' },
       { name: 'Google Gemini', description: 'Advanced language model' },
       { name: 'Streaming Responses', description: 'Real-time AI chat experience' },
       { name: 'Health Pattern Analysis', description: 'Custom AI health algorithms' },
+      { name: 'Wisdom Engine', description: 'Adaptive AI communication layer' },
+    ]
+  },
+  {
+    category: 'Premium Scanners',
+    icon: Layers,
+    color: 'text-lavender-dark',
+    technologies: [
+      { name: 'Multi-Layer Scan', description: 'Toggle lifestyle, mental, physiological layers' },
+      { name: 'Causal Chain Scanner', description: 'Visualize health cause-effect relationships' },
+      { name: 'Stability Oscillation', description: 'Measure volatility and fragility' },
+      { name: 'Resilience Scanner', description: 'Simulate stress response' },
+      { name: 'Invisible Damage', description: 'Detect cumulative silent stress' },
+      { name: 'Decision Sensitivity', description: 'Impact of small lifestyle changes' },
+    ]
+  },
+  {
+    category: 'Visualization',
+    icon: Eye,
+    color: 'text-warning',
+    technologies: [
+      { name: 'Virtual Organ Scan', description: 'Body visualization with stress levels' },
+      { name: 'Health Trajectory', description: 'Timeline-based health progression' },
+      { name: 'Risk Heatmap', description: 'Color-coded risk distribution' },
+      { name: 'Mental Burnout Scan', description: 'Brain visualization for stress' },
+      { name: '3D Body Visualization', description: 'Interactive 3D health model' },
+      { name: 'Emotional Heatmap', description: 'Long-term emotional patterns' },
+    ]
+  },
+  {
+    category: 'Wisdom Layer',
+    icon: Sparkles,
+    color: 'text-success',
+    technologies: [
+      { name: 'Health Wisdom Engine', description: 'Adaptive AI communication' },
+      { name: 'Future Readiness Index', description: 'Health preparedness score' },
+      { name: 'Personal Philosophy', description: 'Customizable AI persona' },
+      { name: 'Trust Calibration', description: 'Dynamic transparency adjustment' },
+      { name: 'Decision Fatigue Protection', description: 'Cognitive load monitoring' },
     ]
   },
   {
     category: 'APIs & Services',
     icon: Globe,
-    color: 'text-lavender-dark',
+    color: 'text-primary',
     technologies: [
-      { name: 'Google Maps API', description: 'Hospital finder & navigation' },
+      { name: 'OpenStreetMap API', description: 'Hospital finder & navigation' },
       { name: 'Geolocation API', description: 'User location detection' },
       { name: 'Recharts', description: 'Composable charting library' },
+      { name: 'Speech Recognition', description: 'Voice input for AKASHII' },
+      { name: 'Text-to-Speech', description: 'Voice response capability' },
     ]
   },
   {
     category: 'Security & Auth',
     icon: Shield,
-    color: 'text-success',
+    color: 'text-destructive',
     technologies: [
-      { name: 'Supabase Auth', description: 'Secure authentication system' },
+      { name: 'Secure Auth', description: 'Email/password authentication' },
       { name: 'JWT Tokens', description: 'Stateless session management' },
       { name: 'RLS Policies', description: 'Row-level database security' },
       { name: 'Zod Validation', description: 'Schema validation library' },
+      { name: 'Credits System', description: 'Usage-based access control' },
     ]
   },
   {
     category: 'Development',
     icon: Code2,
-    color: 'text-primary',
+    color: 'text-ocean-dark',
     technologies: [
       { name: 'Lovable Platform', description: 'AI-powered development environment' },
       { name: 'ESLint', description: 'JavaScript linting utility' },
       { name: 'React Query', description: 'Data fetching & caching' },
       { name: 'React Router', description: 'Client-side routing' },
+      { name: 'Theme System', description: 'Light/Dark mode support' },
     ]
   },
 ];
@@ -90,7 +135,7 @@ export function TechStack({ trigger }: TechStackProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="w-6 h-6 text-warning" />
@@ -107,9 +152,9 @@ export function TechStack({ trigger }: TechStackProps) {
               key={category.category}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.05 }}
             >
-              <Card>
+              <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="py-3">
                   <CardTitle className="flex items-center gap-2 text-base">
                     <category.icon className={`w-5 h-5 ${category.color}`} />
@@ -122,7 +167,7 @@ export function TechStack({ trigger }: TechStackProps) {
                       <Badge 
                         key={tech.name} 
                         variant="secondary" 
-                        className="cursor-help"
+                        className="cursor-help hover:bg-primary/20 transition-colors"
                         title={tech.description}
                       >
                         {tech.name}
@@ -138,12 +183,15 @@ export function TechStack({ trigger }: TechStackProps) {
         <Card className="bg-gradient-to-r from-primary/10 to-coral/10 border-primary/30">
           <CardContent className="py-4">
             <div className="flex items-center gap-3">
-              <Cloud className="w-8 h-8 text-primary" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <Bot className="w-8 h-8 text-primary" />
+              </div>
               <div>
-                <p className="font-semibold">SDOP - Smart Disease Outbreak Prevention</p>
+                <p className="font-semibold">SDOP - Silent Disease Onset Predictor</p>
                 <p className="text-sm text-muted-foreground">
-                  A future-ready preventive healthcare intelligence platform built for Imagine Cup, 
-                  emphasizing human-centered AI, transparency, and early intervention.
+                  A future-ready preventive healthcare intelligence platform featuring AKASHII, 
+                  an advanced AI Health Agent with wisdom-based adaptive communication, 
+                  multi-layer health scanning, and doctor collaboration modes.
                 </p>
               </div>
             </div>

@@ -1,12 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { Heart, Menu, X, LogOut, User, LayoutDashboard } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
+import { Heart, Menu, X, LogOut, User, LayoutDashboard, Moon, Sun, Crown } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSubscription } from '@/hooks/useSubscription';
 
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -27,9 +31,12 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl gradient-hero flex items-center justify-center shadow-md group-hover:shadow-glow transition-all duration-300">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="w-10 h-10 rounded-xl gradient-hero flex items-center justify-center shadow-md group-hover:shadow-glow transition-all duration-300"
+            >
               <Heart className="w-5 h-5 text-primary-foreground" />
-            </div>
+            </motion.div>
             <span className="text-xl font-bold text-foreground">SDOP</span>
           </Link>
 
@@ -46,10 +53,27 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Auth Buttons & Theme Toggle */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="relative overflow-hidden"
+            >
+              <Sun className={`h-5 w-5 transition-all ${theme === 'dark' ? 'rotate-90 scale-0' : 'rotate-0 scale-100'}`} />
+              <Moon className={`absolute h-5 w-5 transition-all ${theme === 'dark' ? 'rotate-0 scale-100' : '-rotate-90 scale-0'}`} />
+            </Button>
+
             {user ? (
               <>
+                {isPremium && (
+                  <Button variant="ghost" onClick={() => navigate('/premium')} className="text-warning">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Premium
+                  </Button>
+                )}
                 <Button variant="ghost" onClick={() => navigate('/dashboard')}>
                   <LayoutDashboard className="w-4 h-4 mr-2" />
                   Dashboard
@@ -68,7 +92,7 @@ export function Navbar() {
                 <Button variant="ghost" onClick={() => navigate('/auth')}>
                   Sign In
                 </Button>
-                <Button onClick={() => navigate('/auth?mode=signup')}>
+                <Button onClick={() => navigate('/auth?mode=signup')} className="bg-gradient-to-r from-primary to-coral hover:opacity-90">
                   Get Started
                 </Button>
               </>
@@ -76,12 +100,17 @@ export function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </Button>
+            <button
+              className="p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -108,10 +137,16 @@ export function Navbar() {
               <div className="flex flex-col gap-2 pt-4 border-t">
                 {user ? (
                   <>
-                    <Button variant="ghost" onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }}>
+                    {isPremium && (
+                      <Button variant="ghost" onClick={() => { navigate('/premium'); setMobileMenuOpen(false); }} className="justify-start text-warning">
+                        <Crown className="w-4 h-4 mr-2" />
+                        Premium
+                      </Button>
+                    )}
+                    <Button variant="ghost" onClick={() => { navigate('/dashboard'); setMobileMenuOpen(false); }} className="justify-start">
                       Dashboard
                     </Button>
-                    <Button variant="ghost" onClick={() => { navigate('/account'); setMobileMenuOpen(false); }}>
+                    <Button variant="ghost" onClick={() => { navigate('/account'); setMobileMenuOpen(false); }} className="justify-start">
                       Account
                     </Button>
                     <Button variant="outline" onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}>
