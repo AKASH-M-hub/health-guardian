@@ -56,9 +56,18 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      console.error('Auth error:', error);
+      toast({ 
+        title: 'Authentication Failed', 
+        description: error.message || 'Invalid credentials. Please check your email and password.', 
+        variant: 'destructive',
+        duration: 5000
+      });
     } else {
-      toast({ title: isSignUp ? 'Account created!' : 'Welcome back!' });
+      toast({ 
+        title: isSignUp ? 'Account created!' : 'Welcome back!',
+        description: isSignUp ? 'Please check your email to verify your account.' : 'Redirecting to dashboard...'
+      });
       navigate('/dashboard');
     }
   };
