@@ -6,19 +6,36 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { 
   Crown, ArrowLeft, Brain, Activity, Heart, Shield, Zap, 
   TrendingUp, AlertTriangle, Clock, Target, Users, FileText,
   Sparkles, Eye, Dna, HeartPulse, Flame, MessageSquare,
-  Bell, Lock, Calendar, ChevronRight, Star, Lightbulb,
-  Wind, Thermometer, Gauge, BarChart3, PieChart, LineChart
+  Bell, Lock, ChevronRight, Star, Lightbulb, BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Import premium feature components
+import { DigitalTwin } from '@/components/premium/DigitalTwin';
+import { TenYearForecast } from '@/components/premium/TenYearForecast';
+import { DiseaseInteractionPredictor } from '@/components/premium/DiseaseInteractionPredictor';
+import { DoctorExplainability } from '@/components/premium/DoctorExplainability';
+import { PrivateAICoach } from '@/components/premium/PrivateAICoach';
+import { BurnoutWarning } from '@/components/premium/BurnoutWarning';
+import { DecisionSimulator } from '@/components/premium/DecisionSimulator';
+import { MedicalReportInterpreter } from '@/components/premium/MedicalReportInterpreter';
+import { ConfidenceAnalytics } from '@/components/premium/ConfidenceAnalytics';
+import { CognitiveIndex } from '@/components/premium/CognitiveIndex';
+import { GeneticLayer } from '@/components/premium/GeneticLayer';
+import { RegressionDetection } from '@/components/premium/RegressionDetection';
+import { LiteratureIntelligence } from '@/components/premium/LiteratureIntelligence';
+import { PersonalizedAlerts } from '@/components/premium/PersonalizedAlerts';
+import { RecoveryProbability } from '@/components/premium/RecoveryProbability';
+import { HealthPriorityOptimizer } from '@/components/premium/HealthPriorityOptimizer';
+import { EmotionalHeatmap } from '@/components/premium/EmotionalHeatmap';
+import { Body3DVisualization } from '@/components/premium/Body3DVisualization';
 
 // 20 Premium Features Data
 const PREMIUM_FEATURES = [
@@ -441,15 +458,28 @@ export default function PremiumDashboard() {
   
   const renderFeatureDemo = (featureId: string) => {
     switch (featureId) {
-      case 'digital-twin': return <DigitalTwinDemo />;
-      case '10-year-forecast': return <TenYearForecastDemo />;
-      case 'burnout-warning': return <BurnoutWarningDemo />;
-      case 'decision-simulator': return <DecisionSimulatorDemo />;
+      case 'digital-twin': return <DigitalTwin />;
+      case '10-year-forecast': return <TenYearForecast />;
+      case 'disease-interaction': return <DiseaseInteractionPredictor />;
+      case 'doctor-explainability': return <DoctorExplainability />;
+      case 'private-coach': return <PrivateAICoach />;
+      case 'burnout-warning': return <BurnoutWarning />;
+      case 'decision-simulator': return <DecisionSimulator />;
+      case 'report-interpreter': return <MedicalReportInterpreter />;
+      case 'confidence-analytics': return <ConfidenceAnalytics />;
+      case 'cognitive-index': return <CognitiveIndex />;
+      case 'genetic-layer': return <GeneticLayer />;
+      case 'regression-detection': return <RegressionDetection />;
+      case 'literature-intelligence': return <LiteratureIntelligence />;
+      case 'personalized-alerts': return <PersonalizedAlerts />;
+      case 'recovery-probability': return <RecoveryProbability />;
+      case 'priority-optimizer': return <HealthPriorityOptimizer />;
+      case 'emotional-heatmap': return <EmotionalHeatmap />;
+      case 'health-vault': return <Body3DVisualization />;
       default: return (
         <div className="text-center py-8 text-muted-foreground">
           <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>Feature simulation coming soon!</p>
-          <p className="text-sm">This feature is being enhanced for your experience</p>
+          <p>Feature coming soon!</p>
         </div>
       );
     }
