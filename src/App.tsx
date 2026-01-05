@@ -18,6 +18,7 @@ import HealthReport from "./pages/HealthReport";
 import Features from "./pages/Features";
 import Account from "./pages/Account";
 import AIHealthHub from "./pages/AIHealthHub";
+import AIHealthFeatures from "./pages/AIHealthFeatures";
 import PremiumDashboard from "./pages/PremiumDashboard";
 import DoctorChat from "./pages/DoctorChat";
 import Wisdom from "./pages/Wisdom";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/account" element={<Account />} />
               <Route path="/ai-hub" element={<AIHealthHub />} />
               <Route path="/ai-health-hub" element={<AIHealthHub />} />
+              <Route path="/ai-health-features" element={<AIHealthFeatures />} />
               <Route path="/premium" element={<PremiumDashboard />} />
               <Route path="/doctor-chat" element={<DoctorChat />} />
               <Route path="/wisdom" element={<Wisdom />} />
