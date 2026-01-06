@@ -231,9 +231,9 @@ export default function Account() {
                       <Coins className="w-4 h-4 text-warning" />
                       Credits
                     </span>
-                    <Badge variant="outline">{credits} available</Badge>
+                      <Badge variant="outline">{credits?.credits || 0} available</Badge>
                   </div>
-                  <Progress value={Math.min((credits / 100) * 100, 100)} className="h-2" />
+                    <Progress value={Math.min(((credits?.credits || 0) / 100) * 100, 100)} className="h-2" />
                   <p className="text-xs text-muted-foreground mt-2">
                     Earn credits by logging in daily
                   </p>

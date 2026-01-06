@@ -26,7 +26,7 @@ interface Profile {
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
-  const { credits, totalEarned, totalSpent } = useCredits();
+  const { credits } = useCredits();
   const { stats } = useHealthData();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -133,17 +133,17 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-3">
                     <Coins className="w-10 h-10 text-primary" />
                     <div>
-                      <div className="text-3xl font-bold text-primary">{credits}</div>
+                      <div className="text-3xl font-bold text-primary">{credits?.credits || 0}</div>
                       <div className="text-sm text-muted-foreground">Available Credits</div>
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-primary/20 grid grid-cols-2 gap-4 text-center">
                     <div>
-                      <div className="font-semibold text-success">{totalEarned}</div>
+                      <div className="font-semibold text-success">{credits?.total_earned || 0}</div>
                       <div className="text-xs text-muted-foreground">Earned</div>
                     </div>
                     <div>
-                      <div className="font-semibold text-coral">{totalSpent}</div>
+                      <div className="font-semibold text-coral">{credits?.total_spent || 0}</div>
                       <div className="text-xs text-muted-foreground">Spent</div>
                     </div>
                   </div>

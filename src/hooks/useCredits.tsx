@@ -4,20 +4,72 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 interface UserCredits {
-  id: string;
-  user_id: string;
   credits: number;
   total_earned: number;
   total_spent: number;
   last_login_credit_date: string | null;
+  credits_awarded_today?: number;
 }
 
 export function useCredits() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [credits, setCredits] = useState<UserCredits | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchCredits = useCallback(async () => {
+  const claimDailyCredits = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Get today's date in IST (UTC+5:30)
+      const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+      const istDate = new Date(Date.now() + istOffset).toISOString().split('T')[0];
+      
+      const { data: currentData, error: fetchError } = await supabase
+        .from('user_credits')
+        .select('credits, total_earned, total_spent, last_login_credit_date')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      // Check if credits were already claimed today in IST timezone
+      if (currentData && currentData.last_login_credit_date !== istDate) {
+        // Award 10 daily credits
+        const { data: updatedData, error: updateError } = await supabase
+          .from('user_credits')
+          .update({
+            credits: (currentData.credits || 0) + 10,
+            total_earned: (currentData.total_earned || 0) + 10,
+            last_login_credit_date: istDate
+          })
+          .eq('user_id', user.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+
+        if (updatedData) {
+          setCredits(updatedData);
+          toast({
+            title: '+10 Login Credits!',
+            description: `You now have ${updatedData.credits} total credits.`,
+          });
+        }
+      } else if (currentData) {
+        setCredits(currentData);
+      }
+    } catch (error) {
+      console.error('Error claiming daily credits:', error);
+      fetchCurrentCredits();
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const fetchCurrentCredits = useCallback(async () => {
     if (!user) {
       setCredits(null);
       setLoading(false);
@@ -27,113 +79,51 @@ export function useCredits() {
     try {
       const { data, error } = await supabase
         .from('user_credits')
-        .select('*')
+        .select('credits, total_earned, total_spent, last_login_credit_date')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
 
-      if (!data) {
-        // Create credits entry if doesn't exist (for existing users)
-        const { data: newData, error: insertError } = await supabase
-          .from('user_credits')
-          .insert({
-            user_id: user.id,
-            credits: 10,
-            total_earned: 10,
-            last_login_credit_date: new Date().toISOString().split('T')[0]
-          })
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-        setCredits(newData);
+      if (data) {
+        setCredits({
+          credits: data.credits || 0,
+          total_earned: data.total_earned || 0,
+          total_spent: data.total_spent || 0,
+          last_login_credit_date: data.last_login_credit_date,
+        });
       } else {
-        // Check for daily login bonus
-        const today = new Date().toISOString().split('T')[0];
-        if (data.last_login_credit_date !== today) {
-          const newCredits = data.credits + 10;
-          const { data: updatedData, error: updateError } = await supabase
-            .from('user_credits')
-            .update({
-              credits: newCredits,
-              total_earned: data.total_earned + 10,
-              last_login_credit_date: today
-            })
-            .eq('user_id', user.id)
-            .select()
-            .single();
-
-          if (!updateError && updatedData) {
-            setCredits(updatedData);
-            toast({
-              title: '🎉 Daily Bonus!',
-              description: 'You received 10 free credits for logging in today!',
-            });
-          } else {
-            setCredits(data);
-          }
-        } else {
-          setCredits(data);
-        }
+        // New user should have been created with 20 bonus credits
+        // Use IST timezone for consistency
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const istDate = new Date(Date.now() + istOffset).toISOString().split('T')[0];
+        
+        setCredits({
+          credits: 20,
+          total_earned: 20,
+          total_spent: 0,
+          last_login_credit_date: istDate,
+        });
       }
     } catch (error) {
       console.error('Error fetching credits:', error);
+      setCredits(null);
     } finally {
       setLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
-    fetchCredits();
-  }, [fetchCredits]);
-
-  const spendCredits = async (amount: number): Promise<boolean> => {
-    if (!credits || credits.credits < amount) {
-      toast({
-        title: 'Insufficient Credits',
-        description: `You need ${amount} credits but only have ${credits?.credits ?? 0}`,
-        variant: 'destructive',
-      });
-      return false;
+    if (user) {
+      // Try to claim daily credits on app load
+      claimDailyCredits();
     }
+  }, [user?.id]);
 
-    try {
-      const newCredits = credits.credits - amount;
-      const { error } = await supabase
-        .from('user_credits')
-        .update({
-          credits: newCredits,
-          total_spent: credits.total_spent + amount
-        })
-        .eq('user_id', user!.id);
-
-      if (error) throw error;
-
-      setCredits(prev => prev ? {
-        ...prev,
-        credits: newCredits,
-        total_spent: prev.total_spent + amount
-      } : null);
-
-      return true;
-    } catch (error) {
-      console.error('Error spending credits:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to process credits',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  };
-
-  return {
-    credits: credits?.credits ?? 0,
-    totalEarned: credits?.total_earned ?? 0,
-    totalSpent: credits?.total_spent ?? 0,
+  return { 
+    credits, 
     loading,
-    spendCredits,
-    refreshCredits: fetchCredits
+    refreshCredits: claimDailyCredits,
+    fetchCredits: fetchCurrentCredits
   };
 }

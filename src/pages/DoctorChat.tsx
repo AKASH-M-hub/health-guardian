@@ -23,7 +23,7 @@ interface Message {
 
 export default function DoctorChat() {
   const { user } = useAuth();
-  const { credits, spendCredits, refreshCredits } = useCredits();
+  const { credits, refreshCredits } = useCredits();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const hospitalName = searchParams.get('hospital') || 'Selected Hospital';
@@ -53,7 +53,7 @@ export default function DoctorChat() {
       return;
     }
 
-    if (credits < 2) {
+    if ((credits?.credits || 0) < 2) {
       toast({ title: 'Insufficient credits', variant: 'destructive' });
       return;
     }
@@ -70,7 +70,13 @@ export default function DoctorChat() {
     setInput('');
     setIsTyping(true);
 
-    await spendCredits(2);
+    // Deduct 2 credits from user
+    if (user && credits?.credits) {
+      await supabase
+        .from('user_credits')
+        .update({ credits: credits.credits - 2, total_spent: (credits.total_spent || 0) + 2 })
+        .eq('user_id', user.id);
+    }
 
     try {
       const conversationHistory = messages
@@ -95,53 +101,29 @@ export default function DoctorChat() {
 
       if (!response.ok) throw new Error('Failed to get response');
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = '';
-      let assistantMessageId = (Date.now() + 1).toString();
+      const data = await response.json();
+      let assistantContent = data.message || 'Sorry, I could not generate a response.';
+      
+      // Clean response formatting
+      assistantContent = assistantContent
+        .replace(/^#+\s+/gm, '') // Remove headers
+        .replace(/###\s+/g, '\n') // Replace ### with newlines
+        .replace(/\*\*(.+?)\*\*/g, '$1') // Remove bold
+        .replace(/_(.+?)_/g, '$1') // Remove italic
+        .replace(/\[(.+?)\]\((.+?)\)/g, '$1') // Remove links
+        .replace(/---+/g, '') // Remove dividers
+        .replace(/^\s*#+\s+User:.*?(?=^\s*#+|$)/gms, '') // Remove User headers
+        .replace(/^\s*#+\s+Assistant:.*?(?=^\s*#+|$)/gms, '') // Remove Assistant headers
+        .trim();
 
-      setMessages(prev => [...prev, {
-        id: assistantMessageId,
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '',
+        content: assistantContent,
         timestamp: new Date()
-      }]);
+      };
 
-      if (reader) {
-        let buffer = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          
-          let newlineIndex;
-          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-            let line = buffer.slice(0, newlineIndex);
-            buffer = buffer.slice(newlineIndex + 1);
-
-            if (line.endsWith('\r')) line = line.slice(0, -1);
-            if (line.startsWith(':') || line.trim() === '') continue;
-            if (!line.startsWith('data: ')) continue;
-
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === '[DONE]') break;
-
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                assistantContent += content;
-                setMessages(prev => prev.map(m => 
-                  m.id === assistantMessageId 
-                    ? { ...m, content: assistantContent }
-                    : m
-                ));
-              }
-            } catch {}
-          }
-        }
-      }
+      setMessages(prev => [...prev, assistantMessage]);
 
       setIsTyping(false);
       refreshCredits();

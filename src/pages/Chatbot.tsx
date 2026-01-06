@@ -35,7 +35,7 @@ const QUICK_PROMPTS = [
 
 export default function Chatbot() {
   const { user } = useAuth();
-  const { credits, spendCredits, refreshCredits } = useCredits();
+  const { credits, refreshCredits } = useCredits();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -114,8 +114,16 @@ export default function Chatbot() {
     setInput('');
     setIsTyping(true);
 
-    const creditSpent = await spendCredits(CREDITS_PER_MESSAGE);
-    if (!creditSpent) {
+      // Deduct credits
+      if (user && credits?.credits) {
+        await supabase
+          .from('user_credits')
+          .update({ 
+            credits: credits.credits - CREDITS_PER_MESSAGE,
+            total_spent: (credits.total_spent || 0) + CREDITS_PER_MESSAGE
+          })
+          .eq('user_id', user.id);
+      } else {
       setIsTyping(false);
       return;
     }
@@ -151,55 +159,31 @@ export default function Chatbot() {
         throw new Error(errorData.error || 'Failed to get response');
       }
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = '';
-      let assistantMessageId = (Date.now() + 1).toString();
-
-      setMessages(prev => [...prev, {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date()
-      }]);
-
-      if (reader) {
-        let buffer = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          
-          let newlineIndex;
-          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-            let line = buffer.slice(0, newlineIndex);
-            buffer = buffer.slice(newlineIndex + 1);
-
-            if (line.endsWith('\r')) line = line.slice(0, -1);
-            if (line.startsWith(':') || line.trim() === '') continue;
-            if (!line.startsWith('data: ')) continue;
-
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === '[DONE]') break;
-
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                assistantContent += content;
-                setMessages(prev => prev.map(m => 
-                  m.id === assistantMessageId 
-                    ? { ...m, content: assistantContent }
-                    : m
-                ));
-              }
-            } catch {}
-          }
-        }
-      }
-
+      const data = await response.json();
+      let assistantContent = data.message || 'Sorry, I could not generate a response.';
+      
+      // Clean response formatting
+      assistantContent = assistantContent
+        .replace(/^#+\s+/gm, '') // Remove headers
+        .replace(/###\s+/g, '\n') // Replace ### with newlines
+        .replace(/\*\*(.+?)\*\*/g, '$1') // Remove bold
+        .replace(/_(.+?)_/g, '$1') // Remove italic
+        .replace(/\[(.+?)\]\((.+?)\)/g, '$1') // Remove links
+        .replace(/---+/g, '') // Remove dividers
+        .replace(/^\s*#+\s+User:.*?(?=^\s*#+|$)/gms, '') // Remove User headers
+        .replace(/^\s*#+\s+Assistant:.*?(?=^\s*#+|$)/gms, '') // Remove Assistant headers
+        .trim();
+      
       setIsTyping(false);
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: assistantContent,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
 
       if (assistantContent) {
         await supabase.from('chat_messages').insert({
@@ -294,7 +278,7 @@ export default function Chatbot() {
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="flex items-center gap-1 px-3 py-2">
                 <Coins className="w-4 h-4 text-primary" />
-                <span className="font-semibold">{credits}</span>
+                 <span className="font-semibold">{credits?.credits || 0}</span>
               </Badge>
               <Tabs value={mode} onValueChange={(v) => setMode(v as 'chat' | 'doctor')}>
                 <TabsList>
@@ -421,7 +405,7 @@ export default function Chatbot() {
                       onChange={(e) => setInput(e.target.value)}
                       placeholder="Ask AKASHII anything..."
                       className="flex-1"
-                      disabled={credits < CREDITS_PER_MESSAGE}
+                      disabled={(credits?.credits || 0) < CREDITS_PER_MESSAGE}
                     />
                     <Button 
                       type="button"
@@ -434,6 +418,7 @@ export default function Chatbot() {
                     <Button 
                       type="submit" 
                       disabled={!input.trim() || isTyping || credits < CREDITS_PER_MESSAGE}
+                        disabled={!input.trim() || isTyping || (credits?.credits || 0) < CREDITS_PER_MESSAGE}
                       className="bg-gradient-to-r from-primary to-coral hover:opacity-90"
                     >
                       <Send className="w-4 h-4" />

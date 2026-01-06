@@ -147,57 +147,17 @@ export function AkashiiBot() {
         throw new Error(errorData.error || 'Failed to get response');
       }
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = '';
-      let assistantMessageId = (Date.now() + 1).toString();
+      const data = await response.json();
+      const assistantContent = data.message || 'Sorry, I could not generate a response.';
+      const assistantMessageId = (Date.now() + 1).toString();
 
+      setIsTyping(false);
       setMessages(prev => [...prev, {
         id: assistantMessageId,
         role: 'assistant',
-        content: '',
+        content: assistantContent,
         timestamp: new Date()
       }]);
-
-      if (reader) {
-        let buffer = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          
-          let newlineIndex;
-          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-            let line = buffer.slice(0, newlineIndex);
-            buffer = buffer.slice(newlineIndex + 1);
-
-            if (line.endsWith('\r')) line = line.slice(0, -1);
-            if (line.startsWith(':') || line.trim() === '') continue;
-            if (!line.startsWith('data: ')) continue;
-
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === '[DONE]') break;
-
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                assistantContent += content;
-                setMessages(prev => prev.map(m => 
-                  m.id === assistantMessageId 
-                    ? { ...m, content: assistantContent }
-                    : m
-                ));
-              }
-            } catch {
-              // Incomplete JSON
-            }
-          }
-        }
-      }
-
-      setIsTyping(false);
 
       if (assistantContent) {
         await supabase.from('chat_messages').insert({
@@ -206,7 +166,6 @@ export function AkashiiBot() {
           content: assistantContent
         });
 
-        // Speak response if voice mode
         if (mode === 'voice' && 'speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(assistantContent);
           utterance.onend = () => setIsSpeaking(false);
