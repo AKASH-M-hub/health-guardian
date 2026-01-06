@@ -220,7 +220,9 @@ export default function HealthInput() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="light">Light (Walking, Stretching)</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="moderate">Moderate (Jogging, Cycling)</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
                       <SelectItem value="intense">Intense (Running, HIIT)</SelectItem>
                     </SelectContent>
                   </Select>

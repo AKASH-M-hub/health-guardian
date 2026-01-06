@@ -165,51 +165,27 @@ Respond as ${selectedPersona.name} with emoji ${selectedPersona.emoji}`
 
       if (!response.ok) throw new Error('Failed to get response');
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let coachContent = '';
+      const data = await response.json();
+      let coachContent = data.message || 'Sorry, I could not generate a response.';
+
+      // Clean up markdown and formatting
+      coachContent = coachContent
+        .replace(/^#+\s+/gm, '')
+        .replace(/###\s+/g, '\n')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/_(.+?)_/g, '$1')
+        .replace(/\[(.+?)\]\((.+?)\)/g, '$1')
+        .replace(/---+/g, '')
+        .trim();
+
       const coachMessageId = (Date.now() + 1).toString();
 
       setMessages(prev => [...prev, {
         id: coachMessageId,
         role: 'coach',
-        content: '',
+        content: coachContent,
         timestamp: new Date()
       }]);
-
-      if (reader) {
-        let buffer = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          
-          let newlineIndex;
-          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-            let line = buffer.slice(0, newlineIndex);
-            buffer = buffer.slice(newlineIndex + 1);
-
-            if (line.endsWith('\r')) line = line.slice(0, -1);
-            if (line.startsWith(':') || line.trim() === '') continue;
-            if (!line.startsWith('data: ')) continue;
-
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === '[DONE]') break;
-
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                coachContent += content;
-                setMessages(prev => prev.map(m =>
-                  m.id === coachMessageId ? { ...m, content: coachContent } : m
-                ));
-              }
-            } catch {}
-          }
-        }
-      }
 
       updateMemory(userInput, coachContent);
     } catch (error) {

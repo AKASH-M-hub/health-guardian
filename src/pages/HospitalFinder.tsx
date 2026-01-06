@@ -257,12 +257,6 @@ export default function HospitalFinder() {
                             </div>
 
                             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-3">
-                              {hospital.distance && (
-                                <span className="flex items-center gap-1">
-                                  <Navigation className="w-4 h-4" />
-                                  {hospital.distance} km away
-                                </span>
-                              )}
                               {hospital.rating > 0 && (
                                 <span className="flex items-center gap-1">
                                   <Star className="w-4 h-4 text-warning fill-warning" />

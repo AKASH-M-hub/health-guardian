@@ -84,7 +84,7 @@ export default function Dashboard() {
               <CardContent className="p-4 flex items-center gap-3">
                 <Coins className="w-8 h-8 text-primary" />
                 <div>
-                  <div className="text-2xl font-bold text-primary">{creditsLoading ? '...' : credits}</div>
+                  <div className="text-2xl font-bold text-primary">{creditsLoading ? '...' : credits?.credits || 0}</div>
                   <div className="text-xs text-muted-foreground">Credits Available</div>
                 </div>
               </CardContent>
