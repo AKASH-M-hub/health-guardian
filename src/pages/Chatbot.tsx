@@ -93,7 +93,7 @@ export default function Chatbot() {
       return;
     }
 
-    if (credits < CREDITS_PER_MESSAGE) {
+    if ((credits?.credits || 0) < CREDITS_PER_MESSAGE) {
       toast({
         title: 'Insufficient Credits',
         description: `You need ${CREDITS_PER_MESSAGE} credits.`,
@@ -295,7 +295,7 @@ export default function Chatbot() {
             </div>
           </div>
 
-          {credits < CREDITS_PER_MESSAGE && (
+          {(credits?.credits || 0) < CREDITS_PER_MESSAGE && (
             <Card className="mb-4 border-warning/50 bg-warning/5">
               <CardContent className="py-3 flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-warning" />
@@ -417,8 +417,7 @@ export default function Chatbot() {
                     </Button>
                     <Button 
                       type="submit" 
-                      disabled={!input.trim() || isTyping || credits < CREDITS_PER_MESSAGE}
-                        disabled={!input.trim() || isTyping || (credits?.credits || 0) < CREDITS_PER_MESSAGE}
+                      disabled={!input.trim() || isTyping || (credits?.credits || 0) < CREDITS_PER_MESSAGE}
                       className="bg-gradient-to-r from-primary to-coral hover:opacity-90"
                     >
                       <Send className="w-4 h-4" />
