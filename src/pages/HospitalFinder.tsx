@@ -58,25 +58,34 @@ export default function HospitalFinder() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          const userLat = position.coords.latitude;
+          const userLng = position.coords.longitude;
+          console.log('GPS Location detected:', { lat: userLat, lng: userLng });
+          
           setLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lat: userLat,
+            lng: userLng
           });
-          setLocationName('Current Location');
-          toast({ title: 'Location found', description: 'Searching for hospitals near you...' });
+          setLocationName('Your Current Location');
+          toast({ 
+            title: 'Location detected', 
+            description: `Lat: ${userLat.toFixed(4)}, Lng: ${userLng.toFixed(4)}`,
+          });
           setLoading(false);
         },
         (error) => {
-          console.error('Location error:', error);
+          console.error('Location error:', error.message);
           toast({ 
             title: 'Location access denied', 
-            description: 'Using default location. Please enable location for accurate results.',
+            description: 'Please enable location permission in your browser for accurate results.',
             variant: 'destructive'
           });
-          // Use a default location (New York)
-          setLocation({ lat: 40.7128, lng: -74.0060 });
-          setLocationName('New York, NY');
           setLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     }
@@ -87,23 +96,45 @@ export default function HospitalFinder() {
     
     setSearching(true);
     try {
+      console.log('Searching hospitals at:', location);
       const { data, error } = await supabase.functions.invoke('find-hospitals', {
-        body: { lat: location.lat, lng: location.lng, type: selectedType, radius: 10000 }
+        body: { 
+          lat: location.lat, 
+          lng: location.lng, 
+          type: selectedType, 
+          radius: 50000 // Increased to 50km for better coverage
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Find hospitals error:', error);
+        throw error;
+      }
       
-      if (data?.hospitals) {
+      console.log('Hospital search response:', data);
+      
+      if (data?.hospitals && data.hospitals.length > 0) {
         setHospitals(data.hospitals);
-        toast({ title: `Found ${data.hospitals.length} nearby places` });
+        toast({ 
+          title: `Found ${data.hospitals.length} places nearby`,
+          description: `Within ${(data.hospitals[0].distance || 0).toFixed(1)} km`
+        });
+      } else {
+        setHospitals([]);
+        toast({ 
+          title: 'No results', 
+          description: 'No hospitals found nearby. Try adjusting search type or check location permission.',
+          variant: 'destructive'
+        });
       }
     } catch (error: any) {
       console.error('Error searching hospitals:', error);
       toast({ 
         title: 'Search error', 
-        description: 'Could not fetch nearby hospitals. Please try again.',
+        description: error.message || 'Could not fetch nearby hospitals. Please try again.',
         variant: 'destructive'
       });
+      setHospitals([]);
     } finally {
       setSearching(false);
     }
