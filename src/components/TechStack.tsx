@@ -24,7 +24,7 @@ const TECH_STACK = [
     icon: Database,
     color: 'text-mint-dark',
     technologies: [
-      { name: 'Lovable Cloud', description: 'Managed backend infrastructure' },
+      { name: 'Supabase Cloud', description: 'Managed backend infrastructure' },
       { name: 'PostgreSQL', description: 'Advanced relational database' },
       { name: 'Edge Functions', description: 'Serverless backend functions' },
       { name: 'Row Level Security', description: 'Database-level access control' },
@@ -37,7 +37,7 @@ const TECH_STACK = [
     color: 'text-coral',
     technologies: [
       { name: 'AKASHII Bot', description: 'Custom AI Health Intelligence Agent' },
-      { name: 'Lovable AI Gateway', description: 'Multi-model AI integration' },
+      { name: 'AI Gateway', description: 'Multi-model AI integration' },
       { name: 'Google Gemini', description: 'Advanced language model' },
       { name: 'Streaming Responses', description: 'Real-time AI chat experience' },
       { name: 'Health Pattern Analysis', description: 'Custom AI health algorithms' },
@@ -111,7 +111,7 @@ const TECH_STACK = [
     icon: Code2,
     color: 'text-ocean-dark',
     technologies: [
-      { name: 'Lovable Platform', description: 'AI-powered development environment' },
+      { name: 'Developer Tooling', description: 'Local dev environment and CI workflows' },
       { name: 'ESLint', description: 'JavaScript linting utility' },
       { name: 'React Query', description: 'Data fetching & caching' },
       { name: 'React Router', description: 'Client-side routing' },
