@@ -74,7 +74,9 @@ Format: {"summary":"...","metrics":[],"keyFindings":[],"doctorQuestions":[]}`
           try {
             const parsed = JSON.parse(jsonStr);
             aiResponse += parsed.choices?.[0]?.delta?.content || '';
-          } catch {}
+          } catch {
+            // Silently ignore malformed JSON chunks in streaming response
+          }
         }
       }
 
